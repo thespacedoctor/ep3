@@ -1,0 +1,1 @@
+update pesstoObjects set marshallWorkflowLocation = "review for followup", snoozed = 0 where pesstoObjectsId in (select * from (select pesstoObjectsId from pesstoObjects where marshallWorkflowLocation = "pending classification" and classifiedFlag = 1) as alias);
