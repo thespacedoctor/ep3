@@ -1,112 +1,56 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+import os
+
+moduleDirectory = os.path.dirname(os.path.realpath(__file__))
+exec(open(moduleDirectory + "/ep3/__version__.py").read())
 
 
 def readme():
-    with open('README.md') as f:
+    with open(moduleDirectory + '/README.md') as f:
         return f.read()
 
-setup(name='ep3',
-      version='0.1',
-      description='',
+install_requires = [
+    'pyyaml',
+    'ep3',
+    'fundamentals'
+]
+
+# READ THE DOCS SERVERS
+exists = os.path.exists("/home/docs/")
+if exists:
+    c_exclude_list = ['healpy', 'astropy',
+                      'numpy', 'sherlock', 'wcsaxes', 'HMpTy', 'ligo-gracedb']
+    for e in c_exclude_list:
+        try:
+            install_requires.remove(e)
+        except:
+            pass
+
+setup(name="ep3",
+      version=__version__,
+      description="Processing of PESSTO data to make it comply with ESO Phase III",
       long_description=readme(),
+      long_description_content_type='text/markdown',
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: MIT License',
+          'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: 2.7',
           'Topic :: Utilities',
       ],
-      keywords='utilities dryx',
-      # url='https://github.com/thespacedoctor/pessto_marshall_engine',
-      author='thespacedoctor',
-      author_email='davidrobertyoung@gmail.com',
+      keywords=['data, pessto, eso'],
+      url='https://github.com/thespacedoctor/ep3',
+      download_url='https://github.com/thespacedoctor/ep3/archive/v%(__version__)s.zip' % locals(
+      ),
+      author='David Young',
+      author_email='d.r.young@qub.ac.uk',
       license='MIT',
-      packages=['pessto_marshall_engine'],
+      packages=find_packages(),
       include_package_data=True,
-      install_requires=[
-          'pyyaml',
-          # 'markdown',
-          'docopt',
-          'fundamentals',
-          'requests',
-          'sloancone',
-          'pymysql==0.9.0'
-      ],
+      install_requires=install_requires,
       test_suite='nose2.collector.collector',
       tests_require=['nose2', 'cov-core'],
       entry_points={
-          'console_scripts': [
-              'pm_export_pessto_classifications=pessto_marshall_engine.database.export.export_pessto_classifications:main',
-              'pm_clean_ntt_dropbox_folder=pessto_marshall_engine.database.nttarchiver.ingesters.clean_ntt_dropbox_folder:main',
-              'pm_ingest_fits_files_in_ntt_dropbox_folder=pessto_marshall_engine.database.nttarchiver.ingesters.ingest_fits_files_in_ntt_dropbox_folder:main',
-              'pm_crossmatch_ntt_data_against_transientbucket=pessto_marshall_engine.database.nttarchiver.processors.crossmatch_ntt_data_against_transientbucket:main',
-              'pm_create_spectra_binary_table_extension_rows_in_database=pessto_marshall_engine.database.nttarchiver.processors.create_spectra_binary_table_extension_rows_in_database:main',
-              'pm_archive_ntt_data=pessto_marshall_engine.database.nttarchiver.processors.archive_ntt_data:main',
-              'pm_update_ntt_data_filenames=pessto_marshall_engine.database.nttarchiver.processors.update_ntt_data_filenames:main',
-              'pm_update_sofi_mjd_keywords=pessto_marshall_engine.database.nttarchiver.processors.update_sofi_mjd_keywords:main',
-              'pm_conesearch_transientBucket=pessto_marshall_engine.conesearchers.conesearch_transientbucket:main',
-              'pm_clean_transientbucket_coordinates=pessto_marshall_engine.database.housekeeping.tablecleaner.clean_transientbucket_coordinates:main',
-              'pm_rewrite_fits_headers=pessto_marshall_engine.database.nttarchiver.fitsmanipulator.rewrite_fits_headers:main',
-              'pm_download_data_from_eso_archive=pessto_marshall_engine.downloaders.eso.download_data_from_eso_archive:main',
-              'pm_export_pessto_object_summaries_for_wiserep=pessto_marshall_engine.database.export.export_pessto_object_summaries_for_wiserep:main',
-              'pm_update_transientbucketsummaries_flags=pessto_marshall_engine.database.housekeeping.flags.update_transientbucketsummaries_flags:main',
-              'pm_rescue_orphaned_objects_in_transientbucket=pessto_marshall_engine.database.housekeeping.tablecleaner.rescue_orphaned_objects_in_transientbucket:main',
-              'pm_export_csv_workflow_tables=pessto_marshall_engine.database.export.export_csv_workflow_tables:main',
-              'pm_download_sdss_images=pessto_marshall_engine.webapp.cachers.download_sdss_images:main',
-              'pm_download_lsq_images=pessto_marshall_engine.webapp.cachers.download_lsq_images:main',
-              'pm_download_lsq_lightcurves=pessto_marshall_engine.webapp.cachers.download_lsq_lightcurves:main',
-              'pm_download_ogle_images=pessto_marshall_engine.webapp.cachers.download_ogle_images:main',
-              'pm_download_skymapper_images=pessto_marshall_engine.webapp.cachers.download_skymapper_images:main',
-              'pm_download_ogle_lightcurves=pessto_marshall_engine.webapp.cachers.download_ogle_lightcurves:main',
-              'pm_download_ps1_images=pessto_marshall_engine.webapp.cachers.download_ps1_images:main',
-              'pm_download_crts_images=pessto_marshall_engine.webapp.cachers.download_crts_images:main',
-              'pm_download_crts_lightcurves=pessto_marshall_engine.webapp.cachers.download_crts_lightcurves:main',
-              'pm_fix_crder_astrometry_values=pessto_marshall_engine.database.housekeeping.tablecleaner.fix_crder_astrometry_values:main',
-              'pm_update_pesstoobjects_with_external_classifications=pessto_marshall_engine.database.housekeeping.tablecleaner.update_pesstoobjects_with_external_classifications:main',
-              'pm_set_pessto_object_classification_flag=pessto_marshall_engine.database.tools.set_pessto_object_classification_flag:main',
-              'pm_add_new_transients_to_pesstoobjects_table=pessto_marshall_engine.database.housekeeping.add_new_transients_to_pesstoobjects_table:main',
-              'pm_add_comment_to_pessto_marshall=pessto_marshall_engine.database.tools.add_comment_to_pessto_marshall:main',
-              'pm_add_atel_titles_as_comments=pessto_marshall_engine.database.housekeeping.add_atel_titles_as_comments:main',
-              'pm_import_ogle_transients=pessto_marshall_engine.database.imports.import_ogle_transients:main',
-              'pm_import_crts_transients=pessto_marshall_engine.database.imports.import_crts_transients:main',
-              'pm_import_user_added_transients=pessto_marshall_engine.database.imports.import_user_added_transients:main',
-              'pm_import_atel_transients=pessto_marshall_engine.database.imports.import_atel_transients:main',
-              'pm_import_panstarrs_transients=pessto_marshall_engine.database.imports.import_panstarrs_transients:main',
-              'pm_import_gaia_transients=pessto_marshall_engine.database.imports.import_gaia_transients:main',
-              'pm_import_skymapper_transients=pessto_marshall_engine.database.imports.import_skymapper_transients:main',
-              'pm_add_nelem_keyword_value_to_database=pessto_marshall_engine.database.nttarchiver.processors.add_nelem_keyword_value_to_database:main',
-              'pm_export_phase_III_data=pessto_marshall_engine.database.export.export_phase_III_data:main',
-              'pm_update_eso_phaseIII_metadata_table=pessto_marshall_engine.database.housekeeping.update_eso_phaseIII_metadata_table:main',
-              'pm_generate_pessto_object_lightcurve=pessto_marshall_engine.plots.lightcurves.generate_pessto_object_lightcurve:main',
-              'pm_bulk_generate_pessto_object_lightcurves=pessto_marshall_engine.plots.lightcurves.bulk_generate_pessto_object_lightcurves:main',
-              'pm_refresh_useful_plots=pessto_marshall_engine.plots.eso_phase_iii.refresh_useful_plots:main',
-              'pm_export_raw_images_used_to_create_final_image=pessto_marshall_engine.database.export.export_raw_images_used_to_create_final_image:main',
-              'pm_import_pessto_papers=pessto_marshall_engine.database.imports.import_pessto_papers:main',
-              'pm_ntt_data_coordinate_crossmatch_checks=pessto_marshall_engine.crossmatchers.internal.ntt_data_coordinate_crossmatch_checks:main',
-              'pm_add_lsq_comments_to_marshall=pessto_marshall_engine.database.imports.lsq._add_lsq_comments_to_marshall:main',
-              'pm_move_object_to_new_workflow_location=pessto_marshall_engine.database.tools.move_object_to_new_workflow_location:main',
-              'pm_import_asassn_transients=pessto_marshall_engine.database.imports.asassn.import_asassn_transients_cl_util:main',
-              'pm_download_master_images=pessto_marshall_engine.webapp.cachers.download_master_images:main',
-              'pm_import_master_transients=pessto_marshall_engine.database.imports.import_master_transients:main',
-              'pm_import_des_transients=pessto_marshall_engine.database.imports.import_des_transients:main',
-              'pm_import_tocp_transients=pessto_marshall_engine.database.imports.import_tocp_transients:main',
-              'pm_download_bright_sn_list_images=pessto_marshall_engine.webapp.cachers.download_bright_sn_list_images:main',
-              'pm_download_des_images=pessto_marshall_engine.webapp.cachers.download_des_images:main',
-              'pm_import_bright_sn_list_transients=pessto_marshall_engine.database.imports.import_bright_sn_list_transients:main',
-              'pm_associate_efosc_images_with_spectra=pessto_marshall_engine.database.nttarchiver.processors.associate_efosc_images_with_spectra:main',
-              'pm_export_phaseIII_metadata_csvs=pessto_marshall_engine.database.export.export_phaseIII_metadata_csvs:main',
-              'pm_archived_object_resurrector=pessto_marshall_engine.database.housekeeping.archived_object_resurrector:main',
-              'pm_check_for_movers=pessto_marshall_engine.database.housekeeping.check_for_movers:main',
-              'pm_import_lsq_transients=pessto_marshall_engine.database.imports.lsq.import_lsq_transients:main',
-              'pm_set_the_best_survey_URLs_for_objects=pessto_marshall_engine.database.housekeeping.set_the_best_survey_URLs_for_objects:main',
-              'pm_update_tcs_stats_tables=pessto_marshall_engine.database.housekeeping.update_tcs_stats_tables:main',
-              'pm_import_tns_transients=pessto_marshall_engine.database.imports.tns.import_tns_transients_cl_util:main',
-              'pm_export_transients_to_tns=pessto_marshall_engine.database.export.export_transients_to_tns:main',
-              'pm_download_ps1_location_maps=pessto_marshall_engine.downloaders.download_ps1_location_maps:main',
-              'pm_correct_efosc_effron=pessto_marshall_engine.database.nttarchiver.processors.correct_efosc_effron:main',
-              'pm_download_atlas_images=pessto_marshall_engine.webapp.cachers.download_atlas_images:main',
-              'pm_import_atlas_transients=pessto_marshall_engine.database.imports.atlas.import_atlas_transients_cl_util:main',
-              'pm_import_lasair_ztf_transients=pessto_marshall_engine.database.imports.import_lasair_ztf_transients:main',
-              'pm_download_lasair_ztf_images=pessto_marshall_engine.webapp.cachers.download_lasair_ztf_images:main',
-          ],
+          'console_scripts': ['ep3=ep3.cl_utils:main'],
       },
       zip_safe=False)

@@ -1,23 +1,28 @@
-# PESSTO Marshall Engine #
+# ep3
 
-## Cloning
+<!-- INFO BADGES -->  
 
-To clone this project use the command:
+[![](https://img.shields.io/pypi/pyversions/ep3)](https://pypi.org/project/ep3/)  
+[![](https://img.shields.io/pypi/v/ep3)](https://pypi.org/project/ep3/)  
+[![](https://img.shields.io/github/license/thespacedoctor/ep3)](https://github.com/thespacedoctor/ep3)  
+[![](https://img.shields.io/pypi/dm/ep3)](https://pypi.org/project/ep3/)  
 
-    git clone git@github.com:thespacedoctor/pessto_marshall_engine.git <folder_name>
+<!-- STATUS BADGES -->  
 
-## Abstract:
+[![](http://167.99.90.204:8080/buildStatus/icon?job=ep3%2Fmaster&subject=build%20master)](http://167.99.90.204:8080/blue/organizations/jenkins/ep3/activity?branch=master)  
+[![](http://167.99.90.204:8080/buildStatus/icon?job=ep3%2Fdevelop&subject=build%20dev)](http://167.99.90.204:8080/blue/organizations/jenkins/ep3/activity?branch=develop)  
+[![](https://cdn.jsdelivr.net/gh/thespacedoctor/ep3@master/coverage.svg)](https://raw.githack.com/thespacedoctor/ep3/master/htmlcov/index.html)  
+[![](https://readthedocs.org/projects/ep3/badge/?version=master)](https://ep3.readthedocs.io/en/master/)  
+[![](https://img.shields.io/github/issues/thespacedoctor/ep3/type:%20bug?label=bug%20issues)](https://github.com/thespacedoctor/ep3/issues?q=is%3Aissue+is%3Aopen+label%3A%22type%3A+bug%22+)  
 
-This is the `pessto_marshall_engine` package is used to provide all of the functionality of the PESSTO Marshall such as web trawling, database ingests & manipulation, transient cross-matching etc.
+*Processing of PESSTO data to make it comply with ESO Phase III*.
 
-## Usage ##
+Documentation for ep3 is hosted by [Read the Docs](https://ep3.readthedocs.io/en/master/) (
+[development version](https://ep3.readthedocs.io/en/develop/) and [master version](https://ep3.readthedocs.io/en/master/)). The code lives on [github](https://github.com/thespacedoctor/ep3). Please report any issues you find [here](https://github.com/thespacedoctor/ep3/issues).
 
-To install this package please change into the directory you cloned the package then from the cl run:
+## Features
 
-    $ python setup.py install
+* 
 
-To test if the package has been install onto your systems python path run python interactively and run:
-
-    import pessto_marshall_engine
 
 
