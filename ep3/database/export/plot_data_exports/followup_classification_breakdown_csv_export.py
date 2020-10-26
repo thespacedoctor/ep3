@@ -13,6 +13,7 @@
     
     @review: when complete pull all general functions and classes into dryxPython
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -76,7 +77,7 @@ def followup_classification_breakdown_csv_export(
         "type Ia": "Ia",
         "type II-P": "IIP"
     }
-    for k, v in classificationCleaner.iteritems():
+    for k, v in classificationCleaner.items():
         sqlQuery = """
             update transientBucket set spectralType = "%(v)s" where replacedByRowId =0 and spectralType = "%(k)s"
         """ % locals()
@@ -106,7 +107,7 @@ def followup_classification_breakdown_csv_export(
         log=log
     )
 
-    print rows
+    print(rows)
 
     # grab the counts for the classifiactions
     classifications = []
@@ -121,7 +122,7 @@ def followup_classification_breakdown_csv_export(
             log=log
         )
         for count in counts:
-            print count
+            print(count)
             classifications.append(count)
 
     topLevelClass = {
@@ -139,8 +140,8 @@ def followup_classification_breakdown_csv_export(
         "variable star": 0
     }
     for row in classifications:
-        print row
-        for tc, v in topLevelClass.iteritems():
+        print(row)
+        for tc, v in topLevelClass.items():
             pec = """%(tc)s-p""" % locals()
             humm = """%(tc)s?""" % locals()
             if pec == row["recentClassification"] or humm == row["recentClassification"]:
@@ -157,10 +158,10 @@ def followup_classification_breakdown_csv_export(
 
     # Recount
     for row in classifications:
-        for tc, v in topLevelClass.iteritems():
+        for tc, v in topLevelClass.items():
             if tc == row["recentClassification"]:
                 row["count"] += v
-        for c, v in otherClass.iteritems():
+        for c, v in otherClass.items():
             if c == row["recentClassification"]:
                 row["count"] += v
 

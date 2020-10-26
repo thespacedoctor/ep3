@@ -16,6 +16,7 @@ Options:
     -h, --help          show this help message
     -s, --settingsFile  path to the settings file
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -44,12 +45,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -180,7 +181,7 @@ def add_nelem_keyword_value_to_database(
                 if not nelem:
                     log.warning(
                         "binary_table_associated_spectrum_id file with primaryId %(primaryId)s still has no `nelem` keyword set" % locals())
-                    print sqlQuery
+                    print(sqlQuery)
                     continue
                 sqlQuery = """
                     update %(table)s set nelem = %(nelem)s where primaryId = %(primaryId)s  and lock_row = 0

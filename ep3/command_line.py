@@ -1,3 +1,4 @@
+from __future__ import print_function
 from pessto_marshall_engine.database.nttarchiver import ingesters
 from pessto_marshall_engine.database.nttarchiver import processors
 from pessto_marshall_engine.database.nttarchiver import fitsmanipulator
@@ -98,7 +99,7 @@ def pm_ingest_directory_into_database(clArgs=None):
         raise IOError(message)
 
     # @completed:
-    print "## REMOVING UNNECESSARY FILES AND FOLDERS ##"
+    print("## REMOVING UNNECESSARY FILES AND FOLDERS ##")
     ingesters.clean_dropbox_folder(
         dbConn,
         log,
@@ -112,7 +113,7 @@ def pm_ingest_directory_into_database(clArgs=None):
     )
 
     # @completed:
-    print "## INGEST THE FITS FILES ##"
+    print("## INGEST THE FITS FILES ##")
     kwargs = {}
     kwargs["log"] = log
     kwargs["dbConn"] = dbConn
@@ -121,7 +122,7 @@ def pm_ingest_directory_into_database(clArgs=None):
     ingesters.recursive_ingest_of_fits_files_in_directory(**kwargs)
 
     # @completed:
-    print "## CLEANING OBJECT NAMES IN TRANSIENTBUCKET ##"
+    print("## CLEANING OBJECT NAMES IN TRANSIENTBUCKET ##")
     pwd = os.getcwd()
     moduleDirectory = os.path.dirname(__file__)
     databaseFile = moduleDirectory + \
@@ -134,11 +135,11 @@ def pm_ingest_directory_into_database(clArgs=None):
     process.wait()
 
     # @completed:
-    print "## ASSOCIATE NEW FILES WITH THEIR RESPECTIVE TRANSIENTBUCKET OBJECTS ##"
+    print("## ASSOCIATE NEW FILES WITH THEIR RESPECTIVE TRANSIENTBUCKET OBJECTS ##")
     processors.crossmatch_ntt_data_against_transientBucket(dbConn, log)
 
     # @completed:
-    print "## RUN THE NTT DATA PROCESSING SQL SCRIPTS ##"
+    print("## RUN THE NTT DATA PROCESSING SQL SCRIPTS ##")
     pwd = os.getcwd()
     moduleDirectory = os.path.dirname(__file__)
     os.chdir(moduleDirectory + "/database/nttarchiver/helper_scripts/mysql")
@@ -149,18 +150,18 @@ def pm_ingest_directory_into_database(clArgs=None):
                     stdout=PIPE, stdin=PIPE, shell=True)
     output = process.communicate()[0]
     process.wait()
-    print output
+    print(output)
     os.chdir(pwd)
 
     # @completed:
-    print "## CREATE THE BINARY TABLE EXTENSION ROWS IN DATABASE -- NEED DUPLICATED FROM 1D SPECTRA ##"
+    print("## CREATE THE BINARY TABLE EXTENSION ROWS IN DATABASE -- NEED DUPLICATED FROM 1D SPECTRA ##")
     processors.create_spectra_binary_table_extension_rows_in_db(
         log=log,
         dbConn=dbConn
     )
 
     # @completed:
-    print "## FILL THE BINARY SPECTRA EXTENSION MYSQL TABLES ##"
+    print("## FILL THE BINARY SPECTRA EXTENSION MYSQL TABLES ##")
     databaseFile = moduleDirectory + \
         "/database/nttarchiver/helper_scripts/mysql/update_add_binary_tables_spectrum_rows.sql"
     cmd = "mysql -u %s --password=%s %s -h %s -f < %s" % (
@@ -169,11 +170,11 @@ def pm_ingest_directory_into_database(clArgs=None):
                     stdout=PIPE, stdin=PIPE, shell=True)
     output = process.communicate()[0]
     process.wait()
-    print output
+    print(output)
     os.chdir(pwd)
 
     # @completed:
-    print "## MOVE THE FILES TO THE ARCHIVE ##"
+    print("## MOVE THE FILES TO THE ARCHIVE ##")
     processors.move_files_to_local_archive(
         pathToArchiveRoot=pathToArchiveRoot,
         pathToDropbox=pathToDropboxRoot,
@@ -182,14 +183,14 @@ def pm_ingest_directory_into_database(clArgs=None):
     )
 
     # @completed:
-    print "## UPDATE FILENAMES AND PATHS IF CHANGED ##"
+    print("## UPDATE FILENAMES AND PATHS IF CHANGED ##")
     processors.update_filename_and_filepath_in_database(
         log=log,
         dbConn=dbConn,
         pathToArchiveRoot=pathToArchiveRoot
     )
 
-    print "## DO ALL THE REQUIRED REWRITES OF THE FITS HEADERS ##"
+    print("## DO ALL THE REQUIRED REWRITES OF THE FITS HEADERS ##")
     # STEP.
     fitsmanipulator.execute_required_fits_header_rename_and_rewrites(
         dbConn,
@@ -354,7 +355,7 @@ def pm_conesearch_transientBucket(clArgs=None):
     )
 
     for t, r, d, o in zip(transientBucketIdList, raList, decList, objectNameList):
-        print """%s | %s | %s | %s""" % (o.ljust(25), str(r).ljust(20), str(d).ljust(20), str(t).ljust(10))
+        print("""%s | %s | %s | %s""" % (o.ljust(25), str(r).ljust(20), str(d).ljust(20), str(t).ljust(10)))
 
     return None
 

@@ -44,12 +44,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -148,7 +148,7 @@ def update_pesstoobjects_with_external_classifications(
         log.debug(
             "attempting to query for objects in ``transientBucket`` table that now have an external classification")
         rows = dms.execute_mysql_read_query(sqlQuery, dbConn, log)
-    except Exception, e:
+    except Exception as e:
         log.error(
             "could not query for objects in transientBucket table that now have an external classification - failed with this error %s: " %
             (str(e),))

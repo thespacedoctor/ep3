@@ -1,1 +1,2 @@
-import update_transientbucketsummaries_flags
+from __future__ import absolute_import
+from . import update_transientbucketsummaries_flags

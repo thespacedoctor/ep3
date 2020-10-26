@@ -1,1 +1,2 @@
-import ntt_data_coordinate_crossmatch_checks
+from __future__ import absolute_import
+from . import ntt_data_coordinate_crossmatch_checks

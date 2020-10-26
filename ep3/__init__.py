@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from . import cl_utils
 import webapp
 
@@ -78,5 +79,5 @@ class utKit(utKit):
     # use the tab-trigger below for new method
     # xt-class-method
 
-import crossmatchers
-import commonutils
+from . import crossmatchers
+from . import commonutils

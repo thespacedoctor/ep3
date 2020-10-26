@@ -20,6 +20,7 @@ Options:
     -d, --dataType            spectra | imaging | all
     -i, --instrument          efosc | sofi | all
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -50,12 +51,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -168,7 +169,7 @@ def export_phase_III_data(
                 log=log
             )
             for row in rows:
-                print row["currentFilepath"]
+                print(row["currentFilepath"])
                 scr = row["currentFilepath"]
                 name = row["currentFilename"]
                 des = "%(thisExportFolder)s/%(name)s" % locals()
@@ -191,7 +192,7 @@ def export_phase_III_data(
                 log=log
             )
             for row in rows:
-                print row["currentFilepath"]
+                print(row["currentFilepath"])
                 scr = row["currentFilepath"]
                 name = row["currentFilename"]
                 des = "%(thisExportFolder)s/%(name)s" % locals()
@@ -219,7 +220,7 @@ def export_phase_III_data(
             )
 
             for row in rows:
-                print row["currentFilepath"]
+                print(row["currentFilepath"])
                 scr = row["currentFilepath"]
                 name = row["currentFilename"]
                 des = "%(thisExportFolder)s/%(name)s" % locals()
@@ -242,7 +243,7 @@ def export_phase_III_data(
                 log=log
             )
             for row in rows:
-                print row["currentFilepath"]
+                print(row["currentFilepath"])
                 scr = row["currentFilepath"]
                 name = row["currentFilename"]
                 des = "%(thisExportFolder)s/%(name)s" % locals()

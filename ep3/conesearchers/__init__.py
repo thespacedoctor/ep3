@@ -1,4 +1,5 @@
 """
 *conesearch the transientBucket table*
 """
-import conesearch_transientbucket
+from __future__ import absolute_import
+from . import conesearch_transientbucket

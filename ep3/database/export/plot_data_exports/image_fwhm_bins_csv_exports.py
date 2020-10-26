@@ -13,6 +13,7 @@
     
     @review: when complete pull all general functions and classes into dryxPython
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -65,7 +66,7 @@ def image_fwhm_bins_csv_exports(
         "efosc": ["B639", "V641", "R642", "i705"]
     }
 
-    for inst, v in filterSets.iteritems():
+    for inst, v in filterSets.items():
         for ffilter in v:
 
             sqlQuery = """
@@ -77,7 +78,7 @@ def image_fwhm_bins_csv_exports(
                 log=log
             )
 
-            print sqlQuery
+            print(sqlQuery)
 
             resolution = 0.2
             minValue = int(
@@ -98,7 +99,7 @@ def image_fwhm_bins_csv_exports(
                 bin = int(row["PSF_FWHM"] / resolution) * \
                     resolution + resolution / 2
                 thisKey = "a%(bin)s" % locals()
-                if thisKey not in binnedDictionary.keys():
+                if thisKey not in list(binnedDictionary.keys()):
                     binnedDictionary[thisKey] = {
                         "bin": bin,
                         "count": 0
@@ -112,7 +113,7 @@ def image_fwhm_bins_csv_exports(
                 import collections
                 obinnedDictionary = collections.OrderedDict(
                     sorted(binnedDictionary.items()))
-                for k, v in obinnedDictionary.iteritems():
+                for k, v in obinnedDictionary.items():
                     bin = v["bin"]
                     count = v["count"]
                     csvFileWriter.writerow(["""%(bin).1f""" % locals(), count])

@@ -21,6 +21,7 @@ Options:
     --passwd=<passwd>     database password
     --dbName=<dbName>     database name
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -49,12 +50,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -139,7 +140,7 @@ def update_sofi_mjd_keywords(
             sqlQuery = """
                 select tmid, mjd_obs,ndit, primaryId ,filename, ncombine, prov1,prov2,prov3,prov4,prov5,prov6,prov7,prov8,prov9,prov10,prov11,prov12,prov13,prov14,prov15,prov16,prov17,prov18,prov19,prov20,prov21,prov22,prov23,prov24,prov25,prov26,prov27,prov28,prov29,prov30,prov31,prov32,prov33,prov34,prov35,prov36,prov37,prov38,prov39,prov40,prov41,prov42,prov43,prov44,prov45,prov46,prov47,prov48,prov49,prov50,prov51,prov52,prov53,prov54,prov55,prov56,prov57,prov58,prov59,prov60 from %(ft)s where esophaseIII = 1  and lock_row = 0
             """ % locals()
-            print sqlQuery
+            print(sqlQuery)
 
         rows = dms.execute_mysql_read_query(
             sqlQuery,
@@ -161,7 +162,7 @@ def update_sofi_mjd_keywords(
                     else:
                         ncomb = i
 
-            print "NCOMBINE: %(ncomb)s " % locals()
+            print("NCOMBINE: %(ncomb)s " % locals())
 
             if row["ncombine"] != ncomb or row["tmid"] == None:
                 primaryId = row["primaryId"]
@@ -173,7 +174,7 @@ def update_sofi_mjd_keywords(
                     dbConn=dbConn,
                     log=log
                 )
-                print "UPDATE: %(sqlQuery)s " % locals()
+                print("UPDATE: %(sqlQuery)s " % locals())
 
             # get the last file used in the combination of the final file
             provKeyword = "prov" + str(row["ncombine"])

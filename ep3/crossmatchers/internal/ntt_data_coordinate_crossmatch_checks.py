@@ -17,6 +17,7 @@ Options:
     -f, --filetype      imaging | spectra | all
     -s, --settingsFile  path to the settings file
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -46,12 +47,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -141,7 +142,7 @@ def ntt_data_coordinate_crossmatch_checks(
         dataRel=dataRel
     )
     totalCount = len(objectList)
-    print "There are %(totalCount)s unique objects observed in the efosc & sofi %(thisSetup)s" % locals()
+    print("There are %(totalCount)s unique objects observed in the efosc & sofi %(thisSetup)s" % locals())
 
     if "imag" in setup:
         fileType = "image"
@@ -171,7 +172,7 @@ def ntt_data_coordinate_crossmatch_checks(
             dataRel=1
         )
         allImagingObjectCount = len(allImagingObjectList)
-        print "There are %(allImagingObjectCount)s unique objects observed in the all Imaging data" % locals()
+        print("There are %(allImagingObjectCount)s unique objects observed in the all Imaging data" % locals())
 
         # calculation the coordinates info for each imaging object
         objectImageAttributes = calculate_coordinate_info_for_objects_in_list(
@@ -183,8 +184,8 @@ def ntt_data_coordinate_crossmatch_checks(
         )
 
         noImagingCounterpartList = []
-        print "| # | Spectral Object | RA~spec | DEC~spec | std (arcsec) | # images | rogue images |" % locals()
-        print "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |" % locals()
+        print("| # | Spectral Object | RA~spec | DEC~spec | std (arcsec) | # images | rogue images |" % locals())
+        print("| :--- | :--- | :--- | :--- | :--- | :--- | :--- |" % locals())
 
         # match each imaging object against spectral objects
         objectNumber = 0
@@ -268,7 +269,7 @@ def ntt_data_coordinate_crossmatch_checks(
                 reversed(sorted(susFiles.items())))
 
             susFiles = ""
-            for k, v in osusFiles.iteritems():
+            for k, v in osusFiles.items():
                 link = v[0]
                 sep = v[1]
                 masterSusFilesList.append([link, sep])
@@ -276,22 +277,22 @@ def ntt_data_coordinate_crossmatch_checks(
                 )
 
             if not areImagesSeparationsOk:
-                print """| %(objectNumber)s | %(objectName)s | %(sRa)0.5f| %(sDec)0.5f | %(thisStd)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals()
+                print("""| %(objectNumber)s | %(objectName)s | %(sRa)0.5f| %(sDec)0.5f | %(thisStd)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals())
 
         # print the image list again as a seperate table
-        print "\n\n| imaging link | angle from mean | notes |" % locals()
-        print "| :---- | :---- | :---- |" % locals()
+        print("\n\n| imaging link | angle from mean | notes |" % locals())
+        print("| :---- | :---- | :---- |" % locals())
         for item in masterSusFilesList:
             sep = item[1]
             link = item[0]
-            print """| %(link)s | %(sep)0.2f |   |""" % locals()
+            print("""| %(link)s | %(sep)0.2f |   |""" % locals())
 
-        print "These spectral objects have no imaging counterpart: %(noImagingCounterpartList)s " % locals()
+        print("These spectral objects have no imaging counterpart: %(noImagingCounterpartList)s " % locals())
 
     else:
         # print objects with too high an STD in either RA or DEC
-        print "| Object | RA~mar | DEC~mar | std~rms (arcsec) | # %(fileTypes)s | rogue %(fileTypes)s |" % locals()
-        print "| :--- | :--- | :--- | :--- | :--- | :--- |" % locals()
+        print("| Object | RA~mar | DEC~mar | std~rms (arcsec) | # %(fileTypes)s | rogue %(fileTypes)s |" % locals())
+        print("| :--- | :--- | :--- | :--- | :--- | :--- |" % locals())
         for thisObject in objectAttributes:
             if (thisObject['stdRms'] * degreesToArcsecRatio) > rmsLimit:
                 thisRaStd = thisObject['stdRa'] * degreesToArcsecRatio
@@ -338,25 +339,25 @@ def ntt_data_coordinate_crossmatch_checks(
                     reversed(sorted(susFiles.items())))
 
                 susFiles = ""
-                for k, v in osusFiles.iteritems():
+                for k, v in osusFiles.items():
                     link = v[0]
                     sep = v[1]
                     masterSusFilesList.append([link, sep])
                     susFiles = """%(susFiles)s %(link)s&nbsp;\\\\((%(sep)0.2f'')\\\\) """ % locals(
                     )
 
-                if isinstance(mRa, str):
-                    print """| %(objectName)s | %(mRa)s | %(mDec)s | %(thisStdRms)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals()
+                if isinstance(mRa, ("".__class__, u"".__class__)):
+                    print("""| %(objectName)s | %(mRa)s | %(mDec)s | %(thisStdRms)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals())
                 else:
-                    print """| %(objectName)s | %(mRa)0.5f| %(mDec)0.5f | %(thisStdRms)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals()
+                    print("""| %(objectName)s | %(mRa)0.5f| %(mDec)0.5f | %(thisStdRms)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals())
 
         # print the image list again as a seperate table
-        print "\n\n| %(fileType)s link | angle from mean | notes |" % locals()
-        print "| :---- | :---- | :---- |" % locals()
+        print("\n\n| %(fileType)s link | angle from mean | notes |" % locals())
+        print("| :---- | :---- | :---- |" % locals())
         for item in masterSusFilesList:
             sep = item[1]
             link = item[0]
-            print """| %(link)s | %(sep)0.2f |   |""" % locals()
+            print("""| %(link)s | %(sep)0.2f |   |""" % locals())
 
     log.debug(
         'completed the ``ntt_data_coordinate_crossmatch_checks`` function')

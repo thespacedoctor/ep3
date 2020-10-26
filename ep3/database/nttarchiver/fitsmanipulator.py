@@ -16,6 +16,7 @@
     
     @soon: delete this file when cron jobs are working on VM03
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -125,7 +126,7 @@ def generate_primary_fits_header_from_database(
 
     fileMeta = fileMeta[0]
     for k, v in fileMeta.items():
-        if "HIERARCH" not in k and isinstance(v, str) and len(v) > 68:
+        if "HIERARCH" not in k and isinstance(v, ("".__class__, u"".__class__)) and len(v) > 68:
             fileMeta[k] = v[0:68]
         if isinstance(v, datetime.datetime):
             if k == "DATE_OBS":
@@ -273,7 +274,7 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     log.debug('sqlQuery to get metadata for binaryTable: %s' % (sqlQuery,))
 
     fileMeta = fileMeta[0]
-    for k, v in fileMeta.iteritems():
+    for k, v in fileMeta.items():
         if isinstance(v, datetime.datetime):
             if k == "DATE_OBS":
                 fileMeta[k] = dat.getDateFromMJD(
@@ -464,7 +465,7 @@ def rewrite_fits_file(
         # tableHduList.writeto(pathToOutputFile, checksum=True)
         # hduList.writeto(pathToFitsFile, clobber=True, checksum=True)
     else:
-        print pathToFitsFile
+        print(pathToFitsFile)
         hduList = pf.open(pathToFitsFile)
         fitsData = hduList[0].data
         hduList.close()

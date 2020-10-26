@@ -26,6 +26,7 @@ Options:
     --updateClassified       update only classified objects
     --updateLive             update only live objects
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -59,12 +60,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -269,7 +270,7 @@ def update_transientbucketsummaries_flags(
 
         percent = (float(index) / float(count)) * 100.
         transientBucketId = row['transientBucketId']
-        print '%(index)s/%(count)s (%(percent)1.1f%% done): attempting to update transientBucketId: %(transientBucketId)s' % locals()
+        print('%(index)s/%(count)s (%(percent)1.1f%% done): attempting to update transientBucketId: %(transientBucketId)s' % locals())
 
         # UPDATE MASTER NAME, CURRENT MAG, COORDINATES, DATE ADDED TO MARSHALL,
         sqlQuery = u"""

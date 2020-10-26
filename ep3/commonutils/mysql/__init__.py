@@ -18,6 +18,7 @@
     @review: make internal function private
     @review: pull all general functions and classes into dryxPythonModules
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -344,7 +345,7 @@ class get_pessto_objects_with_flagset():
 
             # FORM A PEAK ABS MAG SORTED LIST OF TUPLES FROM objectDict
             sorted_mags = sorted(
-                objectDict.iteritems(), key=operator.itemgetter(1))
+                objectDict.items(), key=operator.itemgetter(1))
 
             objectList = ""
             i = 0
@@ -1117,7 +1118,7 @@ def get_pessto_classified_object_counts(dbConn, log, typeList):
         log.error(
             "could not count the number of objects classified by pessto with the types %s - failed with this error: %s " %
             (typeList, str(e),))
-        print str(e)
+        print(str(e))
         sys.exit(0)
 
     count = rows[0]["count(*)"]
@@ -1149,7 +1150,7 @@ def get_pessto_classified_object_counts(dbConn, log, typeList):
 #   try:
 #     log.debug("attempting to find ____ for transientBucketId %s" % (transientBucketId,))
 #     rows = m.execute_mysql_read_query(sqlQuery,dbConn, log)
-#   except Exception, e:
+#   except Exception as e:
 #     log.error("could not find ____ for transientBucketId %s - failed with this error %s: " % (transientBucketId,str(e),))
 #     return -1
 

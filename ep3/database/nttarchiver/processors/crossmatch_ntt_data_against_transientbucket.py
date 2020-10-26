@@ -22,6 +22,7 @@ Options:
     --passwd=<passwd>      database password
     --dbName=<dbName>      database name
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -50,12 +51,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -158,7 +159,7 @@ def crossmatch_ntt_data_against_transientbucket(
     else:
         updateArchivedFile = " "
 
-    print "checking the NTT imaging data"
+    print("checking the NTT imaging data")
 
     PESSTOESO154Names = []
     sqlQuery = """
@@ -205,7 +206,7 @@ def crossmatch_ntt_data_against_transientbucket(
             # Cursor up one line and clear line
             if thisCount > 1 and overwrite:
                 sys.stdout.write("\x1b[1A\x1b[2K")
-            print "%(thisCount)s/%(totalCount)s %(t)s checked" % locals()
+            print("%(thisCount)s/%(totalCount)s %(t)s checked" % locals())
             transientBucketId, raDeg, decDeg, objectName = pmcm.conesearch_marshall_transientBucket_objects(
                 dbConn,
                 log,
@@ -235,7 +236,7 @@ def crossmatch_ntt_data_against_transientbucket(
                         UPDATE %s SET isInTransientBucket = 1
                             WHERE primaryID = %s and lock_row = 0""" % (t, row["primaryId"])
                 else:
-                    print "requesting a name update from %(objectName)s" % locals()
+                    print("requesting a name update from %(objectName)s" % locals())
                     sqlQuery = """
                         UPDATE %s SET transientBucketId = %s, isInTransientBucket = 1, rewriteFitsHeader = 1, updateObjectName = 1
                             WHERE primaryID = %s  and lock_row = 0""" % (t, transientBucketId, row["primaryId"])
@@ -254,7 +255,7 @@ def crossmatch_ntt_data_against_transientbucket(
                 log=log
             )
 
-    print "checking the NTT spectral data"
+    print("checking the NTT spectral data")
 
     # repeat for the spectra data (now for ra, dec AND object - ra and dec
     # originally telescope pointing not the object coordinates)
@@ -281,7 +282,7 @@ def crossmatch_ntt_data_against_transientbucket(
             # Cursor up one line and clear line
             if thisCount > 1:
                 sys.stdout.write("\x1b[1A\x1b[2K")
-            print "%(thisCount)s/%(totalCount)s %(t)s checked" % locals()
+            print("%(thisCount)s/%(totalCount)s %(t)s checked" % locals())
             transientBucketId, raDeg, decDeg, objectName = pmcm.conesearch_marshall_transientBucket_objects(
                 dbConn,
                 log,
@@ -290,9 +291,9 @@ def crossmatch_ntt_data_against_transientbucket(
                 radiusArcSec=r
             )
 
-            print row["RA"], row["DECL"], r
-            print transientBucketId, raDeg, decDeg, objectName
-            print ""
+            print(row["RA"], row["DECL"], r)
+            print(transientBucketId, raDeg, decDeg, objectName)
+            print("")
 
             if transientBucketId and ((row["object"] != objectName) or (row["transientBucketId"] is None) or (str(row["RA"]) != str(raDeg)) or (str(row["DECL"]) != str(decDeg))):
                 if (transientBucketId == 352873 or transientBucketId == 45354):
@@ -300,7 +301,7 @@ def crossmatch_ntt_data_against_transientbucket(
                         sqlQuery = """
                             UPDATE %s SET isInTransientBucket = 1, transientBucketId = 352873, RA = 41.288625, DECL = -55.7380305556, rewriteFitsHeader = 1, object = "SN2014eg"
                                 WHERE primaryID = %s  and lock_row = 0""" % (t, row["primaryId"])
-                        print "HERE"
+                        print("HERE")
                     elif row["object"] in SN2013fcNames or row["ESO_OBS_TARG_NAME"] in SN2013fcNames:
                         sqlQuery = """
                             UPDATE %s SET isInTransientBucket = 1, transientBucketId = 45354
@@ -332,7 +333,7 @@ def crossmatch_ntt_data_against_transientbucket(
             )
 
     # UPDATE THE NAMES IN THE OBJECT FIELD OF THE FITS FILES
-    print "updating the names in the object field of NTT fits files"
+    print("updating the names in the object field of NTT fits files")
     tableNames = [
         "efosc_imaging", "efosc_spectra", "sofi_imaging", "sofi_spectra"]
     skipNames = ["EFOSC.", "EFOSC.", "SOFI.", "SOFI."]
@@ -362,7 +363,7 @@ def crossmatch_ntt_data_against_transientbucket(
             if count > 1:
                 # Cursor up one line and clear line
                 sys.stdout.write("\x1b[1A\x1b[2K")
-            print """%(count)s/%(total)s %(t)s checked""" % locals()
+            print("""%(count)s/%(total)s %(t)s checked""" % locals())
             count += 1
 
             try:
@@ -409,7 +410,7 @@ def crossmatch_ntt_data_against_transientbucket(
                     (sqlQuery, str(e),))
 
     # JUST ASSOCIATE TRANSIENT BUCKET ID TO RAW IMAGES
-    print "associating transientBucketIDs with raw images"
+    print("associating transientBucketIDs with raw images")
     tableNames = [
         "efosc_imaging", "efosc_spectra", "sofi_imaging", "sofi_spectra"]
     for t in tableNames:
@@ -431,7 +432,7 @@ def crossmatch_ntt_data_against_transientbucket(
             if thisCount > 1:
                 # Cursor up one line and clear line
                 sys.stdout.write("\x1b[1A\x1b[2K")
-            print "%(thisCount)s/%(totalCount)s %(t)s checked" % locals()
+            print("%(thisCount)s/%(totalCount)s %(t)s checked" % locals())
             transientBucketId, raDeg, decDeg, objectName = pmcm.conesearch_marshall_transientBucket_objects(
                 dbConn,
                 log,

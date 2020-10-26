@@ -45,12 +45,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -195,7 +195,7 @@ def export_csv_workflow_tables(
 
     # Add new columns to the sorted column list
     columnList = startColumnList
-    for k, v in rows[0].iteritems():
+    for k, v in rows[0].items():
         if k not in columnList:
             columnList.append(k)
 
@@ -218,7 +218,7 @@ def export_csv_workflow_tables(
     try:
         log.debug("attempting to open the file %s" % (pathToWriteFile,))
         writeFile = open(pathToWriteFile, 'w')
-    except IOError, e:
+    except IOError as e:
         message = 'could not open the file %s' % (pathToWriteFile,)
         log.critical(message)
         raise IOError(message)

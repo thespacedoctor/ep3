@@ -1,2 +1,3 @@
+from __future__ import absolute_import
 
-import internal
+from . import internal

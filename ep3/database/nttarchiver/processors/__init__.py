@@ -1,8 +1,9 @@
-import add_nelem_keyword_value_to_database
-import update_sofi_mjd_keywords
-import update_ntt_data_filenames
-import archive_ntt_data
-import create_spectra_binary_table_extension_rows_in_database
-import crossmatch_ntt_data_against_transientbucket
-import correct_efosc_effron
-from associate_efosc_images_with_spectra import associate_efosc_images_with_spectra
+from __future__ import absolute_import
+from . import add_nelem_keyword_value_to_database
+from . import update_sofi_mjd_keywords
+from . import update_ntt_data_filenames
+from . import archive_ntt_data
+from . import create_spectra_binary_table_extension_rows_in_database
+from . import crossmatch_ntt_data_against_transientbucket
+from . import correct_efosc_effron
+from .associate_efosc_images_with_spectra import associate_efosc_images_with_spectra

@@ -77,7 +77,7 @@ def classification_breakdown_csv_export(
         "noisy - unclear": "poor signal",
         "not visible": "no signal"
     }
-    for k, v in classificationCleaner.iteritems():
+    for k, v in classificationCleaner.items():
         sqlQuery = """
             update transientBucket set spectralType = "%(v)s" where  replacedByRowId =0 and spectralType = "%(k)s"
         """ % locals()
@@ -137,7 +137,7 @@ def classification_breakdown_csv_export(
         "variable star": 0
     }
     for row in classifications:
-        for tc, v in topLevelClass.iteritems():
+        for tc, v in topLevelClass.items():
             pec = """%(tc)s-p""" % locals()
             humm = """%(tc)s?""" % locals()
             if pec == row["recentClassification"] or humm == row["recentClassification"]:
@@ -154,10 +154,10 @@ def classification_breakdown_csv_export(
 
     # Recount
     for row in classifications:
-        for tc, v in topLevelClass.iteritems():
+        for tc, v in topLevelClass.items():
             if tc == row["recentClassification"]:
                 row["count"] += v
-        for c, v in otherClass.iteritems():
+        for c, v in otherClass.items():
             if c == row["recentClassification"]:
                 row["count"] += v
 

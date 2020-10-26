@@ -16,6 +16,7 @@ Options:
     -h, --help          show this help message
     -s, --settingsFile  path to the settings file
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -45,12 +46,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -193,7 +194,7 @@ def update_eso_phaseIII_metadata_table(
                 log=log
             )
 
-            print sqlQuery
+            print(sqlQuery)
 
     log.debug('completed the ``update_eso_phaseIII_metadata_table`` function')
     return None

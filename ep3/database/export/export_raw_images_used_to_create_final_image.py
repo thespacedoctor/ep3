@@ -18,6 +18,7 @@ Options:
     -f, --fileName         filename of the final image
     -e, --exportDirectory  path to the directory to export the raw files to
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -43,12 +44,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -112,7 +113,7 @@ def export_raw_images_used_to_create_final_image(
     log.debug(
         'completed the ````export_raw_images_used_to_create_final_image`` function')
 
-    print "## %(fileName)s" % locals()
+    print("## %(fileName)s" % locals())
 
     # WORKOUT WHICH TABLE THE FILE IS FOUND IN
     found = 0
@@ -207,7 +208,7 @@ def export_raw_images_used_to_create_final_image(
             log.debug("attempting to copy file here")
             shutil.copyfile(image,
                             thisFolder + "/%(basename)s" % locals())
-        except Exception, e:
+        except Exception as e:
             log.error("could not copy file here - failed with this error: %s " %
                       (str(e),))
 
@@ -273,7 +274,7 @@ def export_raw_science_images(
     )
     scienceFrames = ""
     for row in rows:
-        for k, v in row.iteritems():
+        for k, v in row.items():
             if v:
                 scienceFrames = """ %(scienceFrames)s"%(v)s", """ % locals()
     scienceFrames = scienceFrames[:-2]
@@ -301,9 +302,9 @@ def export_raw_science_images(
         csvFilename="filename",
         returnFormat="plainText"  # plainText | webpageDownload | webpageView
     )
-    print """\n```
+    print("""\n```
     %(csvOutput)s
-```""" % locals()
+```""" % locals())
 
     log.debug('completed the ``export_raw_science_images`` function')
     return None
@@ -357,7 +358,7 @@ def export_bias_frames(
         negative = 1
         count = 1
         next = snippet
-        print snippet
+        print(snippet)
         while not len(newRows):
             if next == snippet:
                 next = thisDate - timedelta(days=0.5)
@@ -394,9 +395,9 @@ def export_bias_frames(
             # plainText | webpageDownload | webpageView
             returnFormat="plainText"
         )
-        print """\n```
+        print("""\n```
         %(csvOutput)s
-    ```""" % locals()
+    ```""" % locals())
 
     log.debug('completed the ``export_bias_frames`` function')
     return None
@@ -448,7 +449,7 @@ def export_flat_field_frames(
     negative = 1
     count = 1
     next = snippet
-    print snippet
+    print(snippet)
     while not len(rows):
         if next == snippet:
             next = thisDate - timedelta(days=0.5)
@@ -484,9 +485,9 @@ def export_flat_field_frames(
         csvFilename="filename",
         returnFormat="plainText"  # plainText | webpageDownload | webpageView
     )
-    print """\n```
+    print("""\n```
     %(csvOutput)s
-```""" % locals()
+```""" % locals())
 
     log.debug('completed the ``export_flat_field_frames`` function')
     return None

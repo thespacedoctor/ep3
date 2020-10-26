@@ -23,6 +23,7 @@ Options:
     --pathToDropboxFolder=<pathToDropboxFolder>   path to folder where NTT data is dumped
     --pathToArchiveRoot=<pathToArchiveRoot>       path to root of the NTT data archive (nested folders)
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -51,12 +52,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -160,7 +161,7 @@ def ingest_fits_files_in_ntt_dropbox_folder(
 
         if path[-5:] == ".fits":
 
-            print path
+            print(path)
 
             _ingest_fits_file(
                 log=log,
@@ -345,7 +346,7 @@ def _ingest_fits_file(
 
     # CONVERT BOOLEAN TO STRING
     dictCopy = fitsFileHeaderDictionary
-    for k, v in fitsFileHeaderDictionary.iteritems():
+    for k, v in fitsFileHeaderDictionary.items():
         if isinstance(v[0], bool):
             if v[0]:
                 dictCopy[k] = ["T", v[1]]
@@ -365,7 +366,7 @@ def _ingest_fits_file(
         del fitsFileHeaderDictionary[
             "________________OG530_/ADA_GUID_DEC".replace("_", " ")]
 
-    # if "QUALITY" not in fitsFileHeaderDictionary.keys():
+    # if "QUALITY" not in list(fitsFileHeaderDictionary.keys()):
     #     fitsFileHeaderDictionary["QUALITY"] = [None, None]
 
     mysqlTableName = _get_fits_file_type(
@@ -445,7 +446,7 @@ def _get_fits_file_type(
 
         if "INSTRUME" not in fitsFileHeaderDictionary:
             message = ""
-            for k, v in fitsFileHeaderDictionary.iteritems():
+            for k, v in fitsFileHeaderDictionary.items():
                 message += "%s: %s\n" % (k, v[0])
             message += '"INSTRUME" keyword missing or blank for file %s[%s]' % (
                 fitsFileHeaderDictionary['filePath'][0], fitsFileHeaderDictionary['headerExtension'][0],)
@@ -461,22 +462,22 @@ def _get_fits_file_type(
             log.critical(message)
             raise ValueError(message)
 
-        if "ESO TPL NAME" in fitsFileHeaderDictionary.keys():
+        if "ESO TPL NAME" in list(fitsFileHeaderDictionary.keys()):
             if "spectr" in fitsFileHeaderDictionary["ESO TPL NAME"][0].lower():
                 mode = "spectra"
             elif "image" in fitsFileHeaderDictionary["ESO TPL NAME"][0].lower():
                 mode = "imaging"
-        if mode == 0 and "ESO DPR TECH" in fitsFileHeaderDictionary.keys():
+        if mode == 0 and "ESO DPR TECH" in list(fitsFileHeaderDictionary.keys()):
             if "spectr" in fitsFileHeaderDictionary["ESO DPR TECH"][0].lower():
                 mode = "spectra"
             elif "image" in fitsFileHeaderDictionary["ESO DPR TECH"][0].lower():
                 mode = "imaging"
-        if mode == 0 and "OBSTECH" in fitsFileHeaderDictionary.keys():
+        if mode == 0 and "OBSTECH" in list(fitsFileHeaderDictionary.keys()):
             if "spectr" in fitsFileHeaderDictionary["OBSTECH"][0].lower():
                 mode = "spectra"
             elif "image" in fitsFileHeaderDictionary["OBSTECH"][0].lower():
                 mode = "imaging"
-        elif mode == 0 and "ESO INS GRIS1 NAME" in fitsFileHeaderDictionary.keys():
+        elif mode == 0 and "ESO INS GRIS1 NAME" in list(fitsFileHeaderDictionary.keys()):
             if "foc_wedge" in fitsFileHeaderDictionary["ESO INS GRIS1 NAME"][0].lower():
                 mode = "imaging"
 

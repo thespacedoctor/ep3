@@ -24,6 +24,7 @@ Options:
     --decDeg=<decDeg>         dec is decimal degrees
     --radiusArcSec=<radius>   conesearch radius in arcsecs
 """
+from __future__ import print_function
 ################# GLOBAL IMPORTS ####################
 import sys
 import os
@@ -88,9 +89,9 @@ def main(arguments=None):
         log.debug('dbConn: %s' % (dbConn,))
 
     # UNPACK REMAINING CL ARGUMENTS
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         varname = arg.replace("--", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + """ = '%s' """ % (val,))
         else:
             exec(varname + """ = %s """ % (val,))
@@ -198,10 +199,10 @@ def search(
         objectNameList = [objectNameList]
 
     if transientBucketIdList == None or len(transientBucketIdList) == 0:
-        print """%s | %s | %s | %s""" % ("NOMATCH".ljust(25), "NOMATCH".ljust(20), "NOMATCH".ljust(20), "NOMATCH".ljust(10))
+        print("""%s | %s | %s | %s""" % ("NOMATCH".ljust(25), "NOMATCH".ljust(20), "NOMATCH".ljust(20), "NOMATCH".ljust(10)))
     else:
         for t, r, d, o in zip(transientBucketIdList, raList, decList, objectNameList):
-            print """%s | %s | %s | %s""" % (o.ljust(25), str(r).ljust(20), str(d).ljust(20), str(t).ljust(10))
+            print("""%s | %s | %s | %s""" % (o.ljust(25), str(r).ljust(20), str(d).ljust(20), str(t).ljust(10)))
 
     return transientBucketIdList, raList, decList, objectNameList
 

@@ -48,12 +48,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -142,7 +142,7 @@ def export_pessto_atels(
         # print title
 
         # convert bytes to unicode
-        if isinstance(userText, str):
+        if isinstance(userText, ("".__class__, u"".__class__)):
             userText = unicode(userText, encoding="utf-8", errors="replace")
         userText = userText.encode("utf8")
 

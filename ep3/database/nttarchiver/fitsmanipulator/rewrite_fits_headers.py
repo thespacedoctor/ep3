@@ -54,12 +54,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.iteritems():
+    for arg, val in arguments.items():
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, str) or isinstance(val, unicode):
+        if isinstance(val, ("".__class__, u"".__class__)) :
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -337,7 +337,7 @@ def generate_primary_fits_header_from_database(
     # clean up a few essential keywords
     fileMeta = fileMeta[0]
     for k, v in fileMeta.items():
-        if "HIERARCH" not in k and isinstance(v, str) and len(v) > 68:
+        if "HIERARCH" not in k and isinstance(v, ("".__class__, u"".__class__)) and len(v) > 68:
             fileMeta[k] = v[0:68]
         if isinstance(v, datetime.datetime):
             if k == "DATE_OBS":
@@ -490,7 +490,7 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     else:
         raise ValueError(
             "there is no associated database entry for this spectral binary table file")
-    for k, v in fileMeta.iteritems():
+    for k, v in fileMeta.items():
         if isinstance(v, datetime.datetime):
             if k == "DATE_OBS":
                 fileMeta[k] = dat.getDateFromMJD(
