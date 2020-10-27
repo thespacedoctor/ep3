@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    May 13, 2014
-
 Usage:
     pm_export_raw_images_used_to_create_final_image -f <filename> -e <exportDirectory> -s <pathToSettingsFile>
 
@@ -19,17 +16,14 @@ Options:
     -e, --exportDirectory  path to the directory to export the raw files to
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from builtins import str
 import sys
 import os
 import shutil
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
 from fundamentals import tools
-import dryxPython.mysql as dms
+from fundamentals.mysql import readquery
 import dryxPython.csvtools as dct
-
 
 def main(arguments=None):
     """
@@ -44,12 +38,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -83,7 +77,6 @@ def main(arguments=None):
 
     return
 
-
 ###################################################################
 # PUBLIC FUNCTIONS                                                #
 ###################################################################
@@ -98,17 +91,20 @@ def export_raw_images_used_to_create_final_image(
     """
     *export raw images used to create final image*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``pathToExportFolder`` -- export folder
-        - ``fileName`` -- name of reduced file
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``pathToExportFolder`` -- export folder
+    - ``fileName`` -- name of reduced file
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
     """
     log.debug(
         'completed the ````export_raw_images_used_to_create_final_image`` function')
@@ -123,11 +119,12 @@ def export_raw_images_used_to_create_final_image(
         sqlQuery = """
             select prov1, ESO_INS_FILT1_NAME from %(table)s where currentFilename = "%(fileName)s";
         """ % locals()
-        match = dms.execute_mysql_read_query(
+        match = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
+
         if len(match):
             databaseTable = table
             log.info(
@@ -145,10 +142,10 @@ def export_raw_images_used_to_create_final_image(
         thisFolder = fileName.replace(".fits", "")
     else:
         thisFolder = pathToExportFolder
-    dcu.dryx_mkdir(
-        log,
-        directoryPath=thisFolder
-    )
+
+    # Recursively create missing directories
+    if not os.path.exists(thisFolder):
+        os.makedirs(thisFolder)
 
     imagesToExport = []
 
@@ -223,7 +220,6 @@ def export_raw_images_used_to_create_final_image(
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
-
 def export_raw_science_images(
         dbConn,
         log,
@@ -233,12 +229,16 @@ def export_raw_science_images(
     """
     *export raw images*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -252,10 +252,10 @@ def export_raw_science_images(
     sqlQuery = u"""
         SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '%(databaseTable)s' AND column_name LIKE 'prov%%';
     """ % locals()
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
     provKeywords = ""
     for row in rows:
@@ -267,14 +267,14 @@ def export_raw_science_images(
     sqlQuery = u"""
         SELECT %(provKeywords)s FROM %(databaseTable)s where currentFilename = '%(fileName)s';
     """ % locals()
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
     scienceFrames = ""
     for row in rows:
-        for k, v in row.items():
+        for k, v in list(row.items()):
             if v:
                 scienceFrames = """ %(scienceFrames)s"%(v)s", """ % locals()
     scienceFrames = scienceFrames[:-2]
@@ -283,10 +283,10 @@ def export_raw_science_images(
     sqlQuery = """
         select currentFilepath, currentFilename,  eso_tpl_nexp, ra, decl, origfile, object, eso_tpl_expno from %(databaseTable)s where currentFilename in (%(scienceFrames)s) order by origfile;
     """ % locals()
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
 
     for row in rows:
@@ -313,7 +313,6 @@ def export_raw_science_images(
 # CREATED : November 10, 2014
 # AUTHOR : DRYX
 
-
 def export_bias_frames(
         dbConn,
         log,
@@ -324,19 +323,22 @@ def export_bias_frames(
     """
     *export bias frames*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``fileName`` -- fileName
-        - ``databaseTable`` -- databaseTable
-        - ``prov1`` -- prov1
-        - ``imagesToExport`` -- imagesToExport
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``fileName`` -- fileName
+    - ``databaseTable`` -- databaseTable
+    - ``prov1`` -- prov1
+    - ``imagesToExport`` -- imagesToExport
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
     """
     log.debug('starting the ``export_bias_frames`` function')
 
@@ -376,10 +378,10 @@ def export_bias_frames(
                 select currentFilepath, currentFilename, ORIGFILE, ESO_TPL_PRESEQ, %(filterKeyword)s , ra, decl, currentFilename, object from %(databaseTable)s  where (currentFilename like "%%%(next)s%%") and (OBJECT = "BIAS") order by origfile;
             """ % locals()
             log.debug("""sqlQuery: `%(sqlQuery)s`""" % locals())
-            newRows = dms.execute_mysql_read_query(
+            newRows rows = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
             for row in newRows:
                 imagesToExport.append(row["currentFilepath"])
@@ -402,7 +404,6 @@ def export_bias_frames(
     log.debug('completed the ``export_bias_frames`` function')
     return None
 
-
 # LAST MODIFIED : November 10, 2014
 # CREATED : November 10, 2014
 # AUTHOR : DRYX
@@ -417,20 +418,23 @@ def export_flat_field_frames(
     """
     *export flat field frames*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``fileName`` -- fileName
-        - ``databaseTable`` -- databaseTable
-        - ``prov1`` -- prov1
-        - ``ffilter`` -- ffilter
-        - ``imagesToExport`` -- imagesToExport
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``fileName`` -- fileName
+    - ``databaseTable`` -- databaseTable
+    - ``prov1`` -- prov1
+    - ``ffilter`` -- ffilter
+    - ``imagesToExport`` -- imagesToExport
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
     """
     log.debug('starting the ``export_flat_field_frames`` function')
 
@@ -467,10 +471,10 @@ def export_flat_field_frames(
             select currentFilepath, currentFilename, ORIGFILE, ESO_TPL_PRESEQ, %(filterKeyword)s , ra, decl, currentFilename, object from %(databaseTable)s  where (currentFilename like "%%%(next)s%%") and (ESO_TPL_PRESEQ like "%%flat%%" or OBJECT = "FLAT") and %(filterKeyword)s = "%(ffilter)s" order by origfile;
         """ % locals()
         log.debug("""sqlQuery: `%(sqlQuery)s`""" % locals())
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         for row in rows:
             imagesToExport.append(row["currentFilepath"])
@@ -496,7 +500,6 @@ def export_flat_field_frames(
 # CREATED : November 10, 2014
 # AUTHOR : DRYX
 
-
 def export_arc_frame(
     dbConn,
     log,
@@ -507,28 +510,31 @@ def export_arc_frame(
     """
     *export arc frame*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``fileName`` -- fileName
-        - ``databaseTable`` -- databaseTable
-        - ``imagesToExport`` -- imagesToExport
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``fileName`` -- fileName
+    - ``databaseTable`` -- databaseTable
+    - ``imagesToExport`` -- imagesToExport
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
     """
     log.debug('starting the ``export_arc_frame`` function')
 
     sqlQuery = u"""
         select arc from %(databaseTable)s where currentFilename = "%(fileName)s" 
     """ % locals()
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
     arc = rows[0]["arc"]
 
@@ -552,7 +558,6 @@ def export_arc_frame(
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
-
 def export_spec_standards(
         dbConn,
         log,
@@ -562,14 +567,18 @@ def export_spec_standards(
     """
     *export standards*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        # copy usage method(s) here and select the following snippet from the command palette:
-        # x-setup-docstring-keys-from-selected-usage-options
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    # copy usage method(s) here and select the following snippet from the command palette:
+    # x-setup-docstring-keys-from-selected-usage-options
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -583,10 +592,10 @@ def export_spec_standards(
         sqlQuery = u"""
             select SENSFUN, SENSPHOT from %(databaseTable)s where currentFilename = "%(fileName)s" 
         """ % locals()
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         SENSFUN = rows[0]["SENSFUN"]
         SENSPHOT = rows[0]["SENSPHOT"]
@@ -594,10 +603,10 @@ def export_spec_standards(
         sqlQuery = u"""
             select SENSFUN from %(databaseTable)s where currentFilename = "%(fileName)s" 
         """ % locals()
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         SENSFUN = rows[0]["SENSFUN"]
         SENSPHOT = None
@@ -625,7 +634,6 @@ def export_spec_standards(
 
 # use the tab-trigger below for new function
 # xt-def-with-logger
-
 
 if __name__ == '__main__':
     main()

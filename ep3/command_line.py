@@ -1,9 +1,10 @@
 from __future__ import print_function
-from pessto_marshall_engine.database.nttarchiver import ingesters
-from pessto_marshall_engine.database.nttarchiver import processors
-from pessto_marshall_engine.database.nttarchiver import fitsmanipulator
-from pessto_marshall_engine.database import conesearchers
-
+from builtins import zip
+from builtins import str
+from ep3.database.nttarchiver import ingesters
+from ep3.database.nttarchiver import processors
+from ep3.database.nttarchiver import fitsmanipulator
+from ep3.database import conesearchers
 
 def _set_up_command_line_tool():
     import logging
@@ -41,7 +42,6 @@ def _set_up_command_line_tool():
 # CREATED : August 27, 2013
 # AUTHOR : DRYX
 
-
 def pm_ingest_directory_into_database(clArgs=None):
     """
     *Recursively ingest the fits files in a directory into the PESSTO marshall database
@@ -51,7 +51,6 @@ def pm_ingest_directory_into_database(clArgs=None):
 
         -h, --help    show this help message*
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import sys
     import os
@@ -59,7 +58,6 @@ def pm_ingest_directory_into_database(clArgs=None):
     ## THIRD PARTY ##
     from docopt import docopt
     ## LOCAL APPLICATION ##
-    import dryxPython.commonutils as dcu
 
     if clArgs == None:
         clArgs = docopt(pm_ingest_directory_into_database.__doc__)
@@ -203,7 +201,6 @@ def pm_ingest_directory_into_database(clArgs=None):
 # CREATED : August 30, 2013
 # AUTHOR : DRYX
 
-
 def pm_associate_ntt_data_with_transientBucket_objects(clArgs=None):
     """
     *associate ntt data with transientBucket objects
@@ -213,7 +210,6 @@ def pm_associate_ntt_data_with_transientBucket_objects(clArgs=None):
 
         -h, --help    show this help message*
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import sys
     import os
@@ -250,7 +246,6 @@ def pm_associate_ntt_data_with_transientBucket_objects(clArgs=None):
 # CREATED : September 9, 2013
 # AUTHOR : DRYX
 
-
 def pm_rewrite_ntt_data_fitsheaders(clArgs=None):
     """
     *rewrite ntt data fitsheaders for files that have had a recent update to its fits header keywords, or move new files from the dropbox location to the local archive
@@ -260,7 +255,6 @@ def pm_rewrite_ntt_data_fitsheaders(clArgs=None):
 
         -h, --help    show this help message*
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import sys
     import os
@@ -298,7 +292,6 @@ def pm_rewrite_ntt_data_fitsheaders(clArgs=None):
 # CREATED : October 16, 2013
 # AUTHOR : DRYX
 
-
 def pm_conesearch_transientBucket(clArgs=None):
     """
     *perform a conesearch on the transientBucket
@@ -309,7 +302,6 @@ def pm_conesearch_transientBucket(clArgs=None):
         -h, --help    show this help message
         -v, --version show version*
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import sys
     import os
@@ -355,7 +347,8 @@ def pm_conesearch_transientBucket(clArgs=None):
     )
 
     for t, r, d, o in zip(transientBucketIdList, raList, decList, objectNameList):
-        print("""%s | %s | %s | %s""" % (o.ljust(25), str(r).ljust(20), str(d).ljust(20), str(t).ljust(10)))
+        print("""%s | %s | %s | %s""" % (o.ljust(25), str(
+            r).ljust(20), str(d).ljust(20), str(t).ljust(10)))
 
     return None
 
@@ -373,7 +366,6 @@ def pm_conesearch_transientBucket(clArgs=None):
 #         -h, --help    show this help message
 #         -v, --version show version
 #     """
-#     ################ > IMPORTS ################
 #     ## STANDARD LIB ##
 #     import sys
 #     import os
@@ -390,7 +382,6 @@ def pm_conesearch_transientBucket(clArgs=None):
 #     ## UNPACK clArgs
 #     pathToDropboxRoot = clArgs["--pathToDropboxRoot"]
 #     pathToArchiveRoot = clArgs["--pathToArchiveRoot"]
-
 
 #     if clArgs.has_key("--dbConn"):
 #         dbConn = clArgs["--dbConn"]

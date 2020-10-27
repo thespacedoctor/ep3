@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 29, 2013
-
 Usage:
     pm_create_spectra_binary_table_extension_rows_in_database -s <pathToSettingsFile>
     pm_create_spectra_binary_table_extension_rows_in_database --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName>
@@ -21,19 +18,14 @@ Options:
     --passwd=<passwd>   database password
     --dbName=<dbName>   database name
 """
-################# GLOBAL IMPORTS ####################
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``create_spectra_binary_table_extension_rows_in_database.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -49,12 +41,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -98,28 +90,29 @@ def main(arguments=None):
 # CREATED : September 8, 2013
 # AUTHOR : DRYX
 
-
 def create_spectra_binary_table_extension_rows_in_database(
         dbConn,
         log):
     """
     *create binary table spectrum rows in database by duplicating the 1D spectrum rows*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     log.debug(
         'completed the ````create_binary_table_spectrum_rows_in_database`` function')
@@ -129,10 +122,10 @@ def create_spectra_binary_table_extension_rows_in_database(
     sqlQuery = """
         SELECT filename, primaryId from efosc_spectra where esoPhaseIII = 1 and filename like "%%\_sb.fits" and CONCAT(filename, primaryId) not in (SELECT * from (SELECT CONCAT(filename, efosc_spectra_id) from efosc_spectra_binary_table_extension where filename like "%%\_sb.fits") as alias)
     """
-    rows = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     for row in rows:
@@ -140,20 +133,20 @@ def create_spectra_binary_table_extension_rows_in_database(
         sqlQuery = """
             INSERT INTO efosc_spectra_binary_table_extension(filename, efosc_spectra_id) VALUES("%s",%s)
         """ % (row["filename"], row["primaryId"])
-        dms.execute_mysql_write_query(
-            sqlQuery,
-            dbConn,
-            log
+        writequery(
+            sqlQuery=sqlQuery,
+            dbConn=self.dbConn,
+            log=self.log
         )
 
     # repeat for sofi
     sqlQuery = """
         SELECT filename, primaryId from sofi_spectra where esoPhaseIII = 1 and filename like "%%\_sb.fits" and CONCAT(filename, primaryId) not in (SELECT * from (SELECT CONCAT(filename, sofi_spectra_id) from sofi_spectra_binary_table_extension where filename like "%%\_sb.fits") as alias)
     """
-    rows = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     for row in rows:
@@ -161,10 +154,10 @@ def create_spectra_binary_table_extension_rows_in_database(
         sqlQuery = """
             INSERT INTO sofi_spectra_binary_table_extension(filename, sofi_spectra_id) VALUES("%s",%s)
         """ % (row["filename"], row["primaryId"])
-        dms.execute_mysql_write_query(
-            sqlQuery,
-            dbConn,
-            log
+        writequery(
+            sqlQuery=sqlQuery,
+            dbConn=self.dbConn,
+            log=self.log
         )
 
     log.debug(

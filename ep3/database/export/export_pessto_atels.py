@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 20, 2014
-
 .. todo::
     
     @review: when complete pull all general functions and classes into dryxPython
@@ -20,19 +17,16 @@ Usage:
     -v, --version         show version
     -s, --settings        the settings file
 """
-################# GLOBAL IMPORTS ####################
+from builtins import str
 import sys
 import os
 import codecs
 from docopt import docopt
 import re
 import string
-from dryxPython import logs as dl
-from dryxPython import mysql as dms
-from dryxPython import commonutils as dcu
+from fundamentals.mysql import readquery
 from fundamentals import tools
 # from ..__init__ import *
-
 
 def main(arguments=None):
     """
@@ -48,12 +42,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -91,7 +85,6 @@ def main(arguments=None):
 # xt-class-module-worker-tmpx
 # xt-class-tmpx
 
-
 ###################################################################
 # PUBLIC FUNCTIONS                                                #
 ###################################################################
@@ -105,12 +98,16 @@ def export_pessto_atels(
     """
     *export pessto atels*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -123,10 +120,10 @@ def export_pessto_atels(
     sqlQuery = u"""
         SELECT atelNumber, title, userText FROM atel_fullcontent where title like "%%PESSTO%%"
     """ % locals()
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
 
     # open files to write to
@@ -143,7 +140,7 @@ def export_pessto_atels(
 
         # convert bytes to unicode
         if isinstance(userText, ("".__class__, u"".__class__)):
-            userText = unicode(userText, encoding="utf-8", errors="replace")
+            userText = str(userText, encoding="utf-8", errors="replace")
         userText = userText.encode("utf8")
 
         matchObject = re.search(r"<pre>(.*?)</pre>", userText, re.S)

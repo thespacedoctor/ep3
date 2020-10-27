@@ -6,25 +6,18 @@
 :Author:
     David Young
 
-:Date Created:
-    July 24, 2014
-
 .. todo::
     
     @review: when complete pull all general functions and classes into dryxPython
 
 # xdocopt-usage-tempx
 """
-################# GLOBAL IMPORTS ####################
 import sys
 import os
 from docopt import docopt
-from dryxPython import mysql as dms
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
+from fundamentals.mysql import readquery
 from fundamentals import tools
 # from ..__init__ import *
-
 
 def main(arguments=None):
     """
@@ -39,12 +32,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -53,6 +46,7 @@ def main(arguments=None):
         log.debug('%s = %s' % (varname, val,))
 
     ## START LOGGING ##
+
     startTime = dcu.get_now_sql_datetime()
     log.info(
         '--- STARTING TO RUN THE get_unique_objects_in_pessto_ntt_data_files.py AT %s' %
@@ -82,7 +76,6 @@ def main(arguments=None):
 # xt-class-module-worker-tmpx
 # xt-class-tmpx
 
-
 ###################################################################
 # PUBLIC FUNCTIONS                                                #
 ###################################################################
@@ -98,12 +91,16 @@ def get_unique_objects_in_pessto_ntt_data_files(
     """
     *get unqiue objects in pessto data files*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -159,12 +156,12 @@ def get_unique_objects_in_pessto_ntt_data_files(
                 ) as alias  %(orderBy)s
             """ % locals()
 
-    # execute the query
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
+
     objectList = []
     objectList[:] = [[row["object"], row["transientBucketId"]] for row in rows]
 

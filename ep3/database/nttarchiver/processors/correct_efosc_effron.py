@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    August 30, 2016
-
 Usage:
     correct_efosc_effron -s <pathToSettingsFile>
 
@@ -16,21 +13,18 @@ Options:
     -h, --help          show this help message
     -s, --settingsFile  path to the settings file
 """
-################# GLOBAL IMPORTS ####################
+from __future__ import division
+from past.utils import old_div
 import sys
 import os
 import re
 import math
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``correct_efosc_effron.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -46,12 +40,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -97,7 +91,6 @@ def main(arguments=None):
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
-
 def correct_efosc_effron(
         log,
         dbConn,
@@ -105,34 +98,37 @@ def correct_efosc_effron(
     """
     *correct_efosc_effron*
 
-    **Key Arguments:**
-        # copy usage method(s) here and select the following snippet from the command palette:
-        - ``log`` -- the logger
-        - ``dbConn`` -- the database connection
+    **Key Arguments**
 
-    **Return:**
-        - None
+    # copy usage method(s) here and select the following snippet from the command palette:
+    - ``log`` -- the logger
+    - ``dbConn`` -- the database connection
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
         @review: when complete, clean worker function and add comments
         @review: when complete add logging
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     import pyfits as pf
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     # add nelem to 1D spectra rows
     sqlQuery = """
         select effron, primaryId, bi_flag, ff_flag, eso_det_out1_ron from efosc_spectra where effron is null and esoPhaseIII = 1 and lock_row = 0;
     """
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
 
     rebias = re.compile(r'.*?((bias|masterb).*)')
@@ -146,10 +142,10 @@ def correct_efosc_effron(
         sqlQuery = """
             select currentFilename, ncombine from efosc_imaging where currentFilename like "%(bias)s%%" limit 1;
         """ % locals()
-        bb = dms.execute_mysql_read_query(
+        bb = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         for b in bb:
             nbias = b["ncombine"]
@@ -157,26 +153,27 @@ def correct_efosc_effron(
         sqlQuery = """
             select currentFilename, ncombine from efosc_spectra where currentFilename like "%(flat)s%%" limit 1;
         """ % locals()
-        ff = dms.execute_mysql_read_query(
+        ff = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         for f in ff:
             nflat = f["ncombine"]
 
         if nbias and nflat:
             ron = row["eso_det_out1_ron"]
-            effron = ron * math.sqrt(1. + 1. / nflat + 1. / nbias)
+            effron = ron * \
+                math.sqrt(1. + old_div(1., nflat) + old_div(1., nbias))
             primaryId = row["primaryId"]
 
             sqlQuery = u"""
                 update efosc_spectra set effron = %(effron)s where primaryId = %(primaryId)s  
             """ % locals()
-            dms.execute_mysql_write_query(
+            writequery(
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log,
+                dbConn=self.dbConn,
+                log=self.log
             )
 
     return None

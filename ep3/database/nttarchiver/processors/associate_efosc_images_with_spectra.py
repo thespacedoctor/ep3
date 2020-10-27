@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    January 7, 2015
-
 .. todo::
     
 
@@ -18,24 +15,21 @@ Usage:
     -h, --help            show this help message
     -s, --settings        the settings file
 """
-################# GLOBAL IMPORTS ####################
+from builtins import zip
+from builtins import object
 import sys
 import os
 import readline
 import glob
 import pickle
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import mysql as dms
-from dryxPython import commonutils as dcu
+from fundamentals.mysql import readquery, writequery
 from fundamentals import tools
-
 
 def main(arguments=None):
     """
     *The main function used when ``associate_efosc_images_with_spectra.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -51,12 +45,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -94,18 +88,17 @@ def main(arguments=None):
 # CLASSES                                                         #
 ###################################################################
 
-
-class associate_efosc_images_with_spectra():
-
+class associate_efosc_images_with_spectra(object):
     """
     *The worker class for the associate_efosc_images_with_spectra module*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
+
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
 
     .. todo::
-
     """
     # Initialisation
 
@@ -136,11 +129,12 @@ class associate_efosc_images_with_spectra():
         """
         *get the associate_efosc_images_with_spectra object*
 
-        **Return:**
-            - ``associate_efosc_images_with_spectra``
+        **Return**
+
+        - ``associate_efosc_images_with_spectra``
+        
 
         .. todo::
-
         """
         self.log.debug('starting the ``get`` method')
 
@@ -154,14 +148,17 @@ class associate_efosc_images_with_spectra():
         """
         *select efosc image names*
 
-        **Key Arguments:**
-            # -
+        **Key Arguments**
 
-        **Return:**
-            - None
+        # -
+        
+
+        **Return**
+
+        - None
+        
 
         .. todo::
-
         """
         self.log.debug('starting the ``_select_efosc_image_data`` method')
 
@@ -169,10 +166,10 @@ class associate_efosc_images_with_spectra():
             select currentFilename, object, MJD_OBS, primaryId from efosc_imaging where esoPhaseIII = 1;
 
         """ % locals()
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=self.log,
             sqlQuery=sqlQuery,
-            dbConn=self.dbConn,
-            log=self.log
+            dbConn=self.dbConn
         )
 
         self.imageObjects = []
@@ -195,30 +192,33 @@ class associate_efosc_images_with_spectra():
         """
         *select efosc spectra data*
 
-        **Key Arguments:**
-            # -
+        **Key Arguments**
 
-        **Return:**
-            - None
+        # -
+        
+
+        **Return**
+
+        - None
+        
 
         .. todo::
-
         """
         self.log.debug('starting the ``_select_efosc_spectra_data`` method')
 
         sqlQuery = u"""
             select currentFilename, MJD_OBS, primaryId, object from efosc_spectra where esoPhaseIII = 1 and currentFilename like "%%_sb.fits"
         """ % locals()
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=self.log,
             sqlQuery=sqlQuery,
-            dbConn=self.dbConn,
-            log=self.log
+            dbConn=self.dbConn
         )
 
         self.spectrumDict = {}
 
         for row in rows:
-            if row["object"] in self.spectrumDict.keys():
+            if row["object"] in list(self.spectrumDict.keys()):
                 self.spectrumDict[row["object"]]["mjd"].append(row["MJD_OBS"])
                 self.spectrumDict[row["object"]][
                     "filename"].append(row["currentFilename"])
@@ -238,14 +238,17 @@ class associate_efosc_images_with_spectra():
         """
         *match images to spectra*
 
-        **Key Arguments:**
-            # -
+        **Key Arguments**
 
-        **Return:**
-            - None
+        # -
+        
+
+        **Return**
+
+        - None
+        
 
         .. todo::
-
         """
         self.log.debug('starting the ``_match_images_to_spectra`` method')
 
@@ -253,7 +256,7 @@ class associate_efosc_images_with_spectra():
         self.matchedSpectrumId = []
 
         for iobject, ifilename, imjd, iid in zip(self.imageObjects, self.imageFilename, self.imageMJD, self.imageID):
-            if iobject in self.spectrumDict.keys():
+            if iobject in list(self.spectrumDict.keys()):
                 closestMatch = 1000000000000
                 for aMjd, aFilename, aId in zip(self.spectrumDict[iobject]["mjd"], self.spectrumDict[iobject]["filename"], self.spectrumDict[iobject]["id"]):
                     mjdDiff = abs(imjd - aMjd)
@@ -272,7 +275,7 @@ class associate_efosc_images_with_spectra():
                 update efosc_imaging set ASSOC_SPECTRUM_NAME = "%(sfilename)s", ASSOC_SPECTRUM_ID = %(sid)s where primaryId = %(iid)s   and lock_row = 0
             """ % locals()
 
-            dms.execute_mysql_write_query(
+            writequery(
                 sqlQuery=sqlQuery,
                 dbConn=self.dbConn,
                 log=self.log
@@ -283,7 +286,6 @@ class associate_efosc_images_with_spectra():
 
     # use the tab-trigger below for new method
     # xt-class-method
-
 
 if __name__ == '__main__':
     main()

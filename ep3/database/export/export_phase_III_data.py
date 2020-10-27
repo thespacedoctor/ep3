@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    March 27, 2014
-
 Usage:
     pm_export_phase_III_data -s <pathToSettingsFile> -n <numberOfRelease> -e <pathToExportFolder> [-d <spectra_imaging_or_all>] [-i <efosc_sofi_or_all>]
 
@@ -21,21 +18,16 @@ Options:
     -i, --instrument          efosc | sofi | all
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-from dryxPython import mysql as dms
+from fundamentals.mysql import readquery
 import shutil
-
 
 def main(arguments=None):
     """
     *The main function used when ``export_phase_III_data.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -51,12 +43,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -115,7 +107,6 @@ def main(arguments=None):
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
-
 def export_phase_III_data(
     log,
     dbConn,
@@ -127,19 +118,22 @@ def export_phase_III_data(
     """
     *export_phase_III_data*
 
-    **Key Arguments:**
-        - ``log`` -- the logger
-        - ``dbConn`` -- the database connection
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``log`` -- the logger
+    - ``dbConn`` -- the database connection
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
         @review: when complete, clean worker function and add comments
         @review: when complete add logging
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -163,10 +157,10 @@ def export_phase_III_data(
             sqlQuery = """
                 select currentFilename, currentFilepath from efosc_imaging where esoPhaseIII = 1 and data_rel = "ssdr%(ssdr)s"
             """ % locals()
-            rows = dms.execute_mysql_read_query(
+            rows = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
             for row in rows:
                 print(row["currentFilepath"])
@@ -186,10 +180,10 @@ def export_phase_III_data(
             sqlQuery = """
                 select currentFilename, currentFilepath from sofi_imaging where esoPhaseIII = 1 and data_rel = "ssdr%(ssdr)s"
             """ % locals()
-            rows = dms.execute_mysql_read_query(
+            rows = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
             for row in rows:
                 print(row["currentFilepath"])
@@ -213,10 +207,10 @@ def export_phase_III_data(
             sqlQuery = """
                 select currentFilename, currentFilepath from efosc_spectra where esoPhaseIII = 1 and data_rel = "ssdr%(ssdr)s" and (currentFilename like "%%_sb.fits" or currentFilename like "%%_si.fits")
             """ % locals()
-            rows = dms.execute_mysql_read_query(
+            rows = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
 
             for row in rows:
@@ -237,10 +231,10 @@ def export_phase_III_data(
             sqlQuery = """
                 select currentFilename, currentFilepath from sofi_spectra where esoPhaseIII = 1 and data_rel = "ssdr%(ssdr)s" and (currentFilename like "%%_sb.fits" or currentFilename like "%%_si.fits")
             """ % locals()
-            rows = dms.execute_mysql_read_query(
+            rows = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
             for row in rows:
                 print(row["currentFilepath"])

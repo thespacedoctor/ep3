@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    February 4, 2015
-
 .. todo::
     
     @review: when complete pull all general functions and classes into dryxPython
@@ -19,22 +16,18 @@ Usage:
     -h, --help            show this help message
     -s, --settings        the settings file
 """
-################# GLOBAL IMPORTS ####################
+from builtins import object
 import sys
 import os
 import readline
 import glob
 import pickle
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
 from fundamentals import tools
 # from ..__init__ import *
 
-
 def tab_complete(text, state):
     return (glob.glob(text + '*') + [None])[state]
-
 
 def main(arguments=None):
     """
@@ -56,12 +49,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -99,16 +92,16 @@ def main(arguments=None):
 # CLASSES                                                         #
 ###################################################################
 
-
-class export_phaseIII_metadata_csvs():
-
+class export_phaseIII_metadata_csvs(object):
     """
     *The worker class for the export_phaseIII_metadata_csvs module*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``settings`` -- settings
+    **Key Arguments**
+
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``settings`` -- settings
+    
 
     .. todo::
 
@@ -152,8 +145,10 @@ class export_phaseIII_metadata_csvs():
         """
         *get the export_phaseIII_metadata_csvs object*
 
-        **Return:**
-            - ``export_phaseIII_metadata_csvs``
+        **Return**
+
+        - ``export_phaseIII_metadata_csvs``
+        
 
         .. todo::
 
@@ -172,10 +167,9 @@ class export_phaseIII_metadata_csvs():
         exportDir = self.settings[
             "stats cache directory"] + "/phaseIII/csv_exports/"
 
-        dcu.dryx_mkdir(
-            log=self.log,
-            directoryPath=exportDir
-        )
+        # Recursively create missing directories
+        if not os.path.exists(exportDir):
+            os.makedirs(exportDir)
 
         for rv in releaseVersions:
             for inst in instruments:
@@ -231,7 +225,6 @@ class export_phaseIII_metadata_csvs():
     # method-override-tmpx
 
 # xt-class-tmpx
-
 
 ###################################################################
 # PUBLIC FUNCTIONS                                                #

@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    November 18, 2013
-
 Usage:
     pm_export_csv_workflow_tables -s <pathToSettingsFile>
 
@@ -16,23 +13,19 @@ Options:
     -h, --help          show this help message
     -s, --settingsFile  path to the settings file
 """
-################# GLOBAL IMPORTS ####################
+from builtins import str
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``export_csv_workflow_tables.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery
 
     # setup the command-line util settings
     from fundamentals import tools
@@ -45,12 +38,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -70,10 +63,11 @@ def main(arguments=None):
     sqlQuery = """
         select distinct marshallWorkflowLocation from pesstoObjects;
     """
-    rows = dms.execute_mysql_read_query(
+
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
 
     for row in rows:
@@ -113,7 +107,6 @@ def main(arguments=None):
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
-
 def export_csv_workflow_tables(
         log,
         dbConn,
@@ -124,16 +117,20 @@ def export_csv_workflow_tables(
     """
     *export_csv_workflow_tables*
 
-    **Key Arguments:**
-        # copy usage method(s) here and select the following snippet from the command palette:
-        - ``log`` -- the logger
-        - ``dbConn`` -- the database connection
-        - ``marshallWorkflowLocation`` -- where in marshall workflow you would like to select the data from
-        - ``csvExportDirectoryPath`` -- path to the directory to dump the csv files to.
-        - ``asciiExportDirectoryPath`` -- path to the directory to dump the ascii files to.
+    **Key Arguments**
 
-    **Return:**
-        - None
+    # copy usage method(s) here and select the following snippet from the command palette:
+    - ``log`` -- the logger
+    - ``dbConn`` -- the database connection
+    - ``marshallWorkflowLocation`` -- where in marshall workflow you would like to select the data from
+    - ``csvExportDirectoryPath`` -- path to the directory to dump the csv files to.
+    - ``asciiExportDirectoryPath`` -- path to the directory to dump the ascii files to.
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -141,20 +138,19 @@ def export_csv_workflow_tables(
         @review: when complete add logging
         @flagged: update this function to remove the view_object_contextual_data view
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery
     import csv
 
     sqlQuery = """
         select * from view_object_contextual_data where marshallWorkflowLocation = "%s"
     """ % (marshallWorkflowLocation,)
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
 
     pathToCsvFile = csvExportDirectoryPath + "/pessto_marshall_" + \
@@ -195,7 +191,7 @@ def export_csv_workflow_tables(
 
     # Add new columns to the sorted column list
     columnList = startColumnList
-    for k, v in rows[0].items():
+    for k, v in list(rows[0].items()):
         if k not in columnList:
             columnList.append(k)
 

@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    December 12, 2013
-
 Usage:
     pm_update_pesstoobjects_with_external_classifications -s <pathToSettingsFile>
 
@@ -16,19 +13,15 @@ Options:
     -h, --help          show this help message
     -s, --settingsFile  path to the settings file
 """
-################# GLOBAL IMPORTS ####################
+from builtins import str
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``update_pesstoobjects_with_external_classifications.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -44,12 +37,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -93,19 +86,22 @@ def main(arguments=None):
 # CREATED : December 12, 2013
 # AUTHOR : DRYX
 
-
 def update_pesstoobjects_with_external_classifications(
         dbConn,
         log):
     """
     *update pesstoobjects with external classifications*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -113,13 +109,12 @@ def update_pesstoobjects_with_external_classifications(
         - @review: when complete add logging
         - @review: when complete, decide whether to abstract function to another module
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import time
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
-    from pessto_marshall_engine.database.tools import set_pessto_object_classification_flag
+    from fundamentals.mysql import readquery, writequery
+    from ep3.database.tools import set_pessto_object_classification_flag
 
     log.debug(
         'completed the ````update_pesstoobjects_with_external_classifications`` function')
@@ -147,7 +142,11 @@ def update_pesstoobjects_with_external_classifications(
     try:
         log.debug(
             "attempting to query for objects in ``transientBucket`` table that now have an external classification")
-        rows = dms.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
+        )
     except Exception as e:
         log.error(
             "could not query for objects in transientBucket table that now have an external classification - failed with this error %s: " %
@@ -160,7 +159,7 @@ def update_pesstoobjects_with_external_classifications(
         # print str(tbId)+" "+str(survey)+" \n"
 
         # CHANGE CLASSIFICATION FLAG, MWFFLAG AND AWFFLAG
-        from pessto_marshall_engine.database.tools import set_pessto_object_classification_flag
+        from ep3.database.tools import set_pessto_object_classification_flag
         set_pessto_object_classification_flag.set_pessto_object_classification_flag(
             log=log,
             dbConn=dbConn,

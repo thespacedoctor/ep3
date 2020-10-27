@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    August 14, 2013
-
 :Notes:
     - If you have any questions requiring this script please email me: davidrobertyoung@gmail.com
 
@@ -19,24 +16,27 @@
     @review: pull all general functions and classes into dryxPythonModules
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from builtins import str
+from builtins import object
 import sys
 import os
-import dryxPython.mysql as m
-
+from fundamentals.mysql import readquery, writequery
 
 def main():
     """
     *Debugger*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - ``None``
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - ``None``
+    
     """
-    ################ > IMPORTS ################
     import pesstoMarshallPythonPath as pp
     pp.set_python_path()
     import pmCommonUtils as p
@@ -64,9 +64,7 @@ def main():
 # CREATED : October 10, 2012
 # AUTHOR : DRYX
 
-
-class get_pessto_objects_with_flagset():
-
+class get_pessto_objects_with_flagset(object):
     """
 
     *A MySQL query builder geared towards finding objects at a specific workflow location in the PESSTO Marshall
@@ -81,9 +79,7 @@ class get_pessto_objects_with_flagset():
             - ``sortBy`` -- parameter to sort the tickets by (e.g. abs mag)
             - ``sortDir`` -- sort direction, desc or asc
             - ``search`` -- term to search for (e.g. object name)*
-
     """
-    ###################### GLOBAL IMPORTS ######################
     ################ PUBLIC VARIABLE ATTRIBUTES ################
     mwfFlag = None
     awfFlag = None
@@ -115,17 +111,19 @@ class get_pessto_objects_with_flagset():
         """
         *Method called to return the db rows found by executing the mysql query built by this class*
 
-        **Key Arguments:**
-            - ``dbConn`` -- mysql database connection
-            - ``log`` -- logger
-            -
+        **Key Arguments**
 
-        **Return:**
-            - ``None``
+        - ``dbConn`` -- mysql database connection
+        - ``log`` -- logger
+        -
+        
+
+        **Return**
+
+        - ``None``
+        
         """
-        ################ > IMPORTS ################
         import operator
-        import dryxPython.mysql as m
 
         ################ > VARIABLE SETTINGS ######
 
@@ -345,7 +343,7 @@ class get_pessto_objects_with_flagset():
 
             # FORM A PEAK ABS MAG SORTED LIST OF TUPLES FROM objectDict
             sorted_mags = sorted(
-                objectDict.items(), key=operator.itemgetter(1))
+                list(objectDict.items()), key=operator.itemgetter(1))
 
             objectList = ""
             i = 0
@@ -370,7 +368,7 @@ class get_pessto_objects_with_flagset():
         try:
             log.debug(
                 "attempting to execute the sql query built to generate the marshall workflow table")
-            rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+            rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
         except Exception as e:
             log.error(
                 "could not execute the sql query built to generate the marshall workflow table - failed with this error: %s\n Here's the SQL query:\n %s " %
@@ -378,7 +376,6 @@ class get_pessto_objects_with_flagset():
             return -1
 
         return rows
-
 
 ##########################################################################
 # PUBLIC FUNCTIONS                                                                          #
@@ -390,16 +387,18 @@ def get_object_peak_mag(dbConn, log, transientBucketId):
     """
     *Get the peak apparent magnitude for a specific object*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``transientBucketId`` -- object ID
+    **Key Arguments**
 
-    **Return:**
-        - peakMag
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``transientBucketId`` -- object ID
+    
+
+    **Return**
+
+    - peakMag
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
 
@@ -415,7 +414,7 @@ def get_object_peak_mag(dbConn, log, transientBucketId):
         log.debug(
             "attempting to grab the brightest magnitude for transientBucketId %s" %
             (transientBucketId,))
-        magList = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        magList = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not grab the brightest magnitude for transientBucketId %s - failed with this error %s: " %
@@ -433,20 +432,21 @@ def get_object_peak_mag(dbConn, log, transientBucketId):
 # CREATED : December 11, 2012
 # AUTHOR : DRYX
 
-
 def list_all_transientBucketIds(dbConn, log):
     """
     *Get a complete list of *transientBucketIds* for all the PESSTO objects*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - ``rows`` -- rows returned by the query
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - ``rows`` -- rows returned by the query
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """SELECT DISTINCT transientBucketId
@@ -455,7 +455,7 @@ def list_all_transientBucketIds(dbConn, log):
     ################ >ACTION(S) ################
     try:
         log.debug("attempting to run a mysql query")
-        rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error("could not run a mysql query - failed with this error %s: " %
                   (str(e),))
@@ -467,21 +467,22 @@ def list_all_transientBucketIds(dbConn, log):
 # CREATED : December 11, 2012
 # AUTHOR : DRYX
 
-
 def get_object_classification_data(dbConn, log, transientBucketId):
     """
     *Get a list of classification data for a specific object*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``transientBucketId`` -- object ID
+    **Key Arguments**
 
-    **Return:**
-        - ``classificationList`` -- list of classification data for the specific object
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``transientBucketId`` -- object ID
+    
+
+    **Return**
+
+    - ``classificationList`` -- list of classification data for the specific object
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """SELECT spectralType, survey, observationDate, transientRedshift
                                 FROM transientBucket
@@ -494,7 +495,8 @@ def get_object_classification_data(dbConn, log, transientBucketId):
         log.debug(
             "attempting to grab the latest transient redshift for transientBucketId %s" %
             (transientBucketId,))
-        classificationList = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        classificationList = readquery(
+            log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not grab the latest transient redshift for transientBucketId %s - failed with this error %s: " %
@@ -507,7 +509,6 @@ def get_object_classification_data(dbConn, log, transientBucketId):
 # CREATED : December 11, 2012
 # AUTHOR : DRYX
 
-
 def get_object_transientBucket_discovery_data(
         dbConn,
         log,
@@ -515,16 +516,18 @@ def get_object_transientBucket_discovery_data(
     """
     *Get a list of the discovery data for a specific object*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``transientBucketId`` -- object ID
+    **Key Arguments**
 
-    **Return:**
-        - ``discoveryData`` -- a list of dictionaries
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``transientBucketId`` -- object ID
+    
+
+    **Return**
+
+    - ``discoveryData`` -- a list of dictionaries
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """SELECT *
@@ -538,7 +541,7 @@ def get_object_transientBucket_discovery_data(
             (transientBucketId,))
         log.debug("Here is the query %s" %
                   (sqlQuery,))
-        discoveryData = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        discoveryData = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not grab the discovery data for transientBucketId %s - failed with this error %s: " %
@@ -547,7 +550,6 @@ def get_object_transientBucket_discovery_data(
 
     return discoveryData
 
-
 # LAST MODIFIED : December 11, 2012
 # CREATED : December 11, 2012
 # AUTHOR : DRYX
@@ -555,16 +557,18 @@ def get_object_last_non_detection(dbConn, log, transientBucketId):
     """
     *Get the latest observation of a specific object*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``transientBucketId`` -- object ID
+    **Key Arguments**
 
-    **Return:**
-        - ``rows`` -- returned from mySQL query
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``transientBucketId`` -- object ID
+    
+
+    **Return**
+
+    - ``rows`` -- returned from mySQL query
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """SELECT lastNonDetectionDate
@@ -577,7 +581,7 @@ def get_object_last_non_detection(dbConn, log, transientBucketId):
     try:
         log.debug("attempting to find the last non-detection for %s" %
                   (transientBucketId,))
-        rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not find the last non-detection for %s - failed with this error %s: " %
@@ -590,21 +594,22 @@ def get_object_last_non_detection(dbConn, log, transientBucketId):
 # CREATED : December 11, 2012
 # AUTHOR : DRYX
 
-
 def get_object_pesstoObjects_discovery_data(dbConn, log, transientBucketId):
     """
     *Get data in the pesstoObjects DB table for a specific object*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - transientBucketId
+    **Key Arguments**
 
-    **Return:**
-        - ``rows`` -- returned from mySQL query
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - transientBucketId
+    
+
+    **Return**
+
+    - ``rows`` -- returned from mySQL query
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """SELECT *
@@ -616,7 +621,7 @@ def get_object_pesstoObjects_discovery_data(dbConn, log, transientBucketId):
         log.debug(
             "attempting to find the discovery data for transientBucketId %s" %
             (transientBucketId,))
-        rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not find the discovery data for transientBucketId %s - failed with this error %s: " %
@@ -629,7 +634,6 @@ def get_object_pesstoObjects_discovery_data(dbConn, log, transientBucketId):
 # CREATED : December 11, 2012
 # AUTHOR : DRYX
 
-
 def get_object_akas(
         dbConn,
         log,
@@ -637,16 +641,18 @@ def get_object_akas(
     """
     *Get a list of AKAs for a specific object*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``transientBucketId`` -- object Id
+    **Key Arguments**
 
-    **Return:**
-        - ``rows`` -- returned from mySQL query
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``transientBucketId`` -- object Id
+    
+
+    **Return**
+
+    - ``rows`` -- returned from mySQL query
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """SELECT DISTINCT name, surveyObjectUrl
@@ -659,7 +665,7 @@ def get_object_akas(
     try:
         log.debug("attempting to find the akas for transientBucketId %s" %
                   (transientBucketId,))
-        rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not find the akas for transientBucketId %s - failed with this error %s: " %
@@ -668,7 +674,6 @@ def get_object_akas(
 
     return rows
 
-
 # LAST MODIFIED : December 11, 2012
 # CREATED : December 11, 2012
 # AUTHOR : DRYX
@@ -676,16 +681,18 @@ def get_object_mag_history(dbConn, log, transientBucketId):
     """
     *Get a date-order magnitude history for a specific object*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``transientBucketId`` -- object Id
+    **Key Arguments**
 
-    **Return:**
-        - ``rows`` -- returned from mySQL query
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``transientBucketId`` -- object Id
+    
+
+    **Return**
+
+    - ``rows`` -- returned from mySQL query
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """SELECT magnitude, filter, observationDate, survey
@@ -698,7 +705,7 @@ def get_object_mag_history(dbConn, log, transientBucketId):
         log.debug(
             "attempting to find date-order magnitude history for transientBucketId %s" %
             (transientBucketId,))
-        rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not find date-order magnitude history for transientBucketId %s - failed with this error %s: " %
@@ -707,7 +714,6 @@ def get_object_mag_history(dbConn, log, transientBucketId):
 
     return rows
 
-
 # LAST MODIFIED : December 11, 2012
 # CREATED : December 11, 2012
 # AUTHOR : DRYX
@@ -715,16 +721,18 @@ def get_object_comments(dbConn, log, pesstoObjectsId):
     """
     *Get all comments for a specific object*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``transientBucketId`` -- object Id
+    **Key Arguments**
 
-    **Return:**
-        - ``rows`` -- returned from mySQL query
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``transientBucketId`` -- object Id
+    
+
+    **Return**
+
+    - ``rows`` -- returned from mySQL query
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """SELECT comment, commentAuthor, dateCreated
@@ -736,7 +744,7 @@ def get_object_comments(dbConn, log, pesstoObjectsId):
     try:
         log.debug("attempting to find all comments for pesstoObjectsId %s" %
                   (pesstoObjectsId,))
-        rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not find all comments for pesstoObjectsId %s - failed with this error %s: " %
@@ -749,22 +757,23 @@ def get_object_comments(dbConn, log, pesstoObjectsId):
 # CREATED : December 8, 2012
 # AUTHOR : DRYX
 
-
 def insert_changelog_entry(dbConn, log, transientBucketId, comment):
     """
     *Insert an entry into the pessto marshall changelog db table.*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - transientBucketId
-        - ``comment`` -- comment about what changed
+    **Key Arguments**
 
-    **Return:**
-        - ``None``
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - transientBucketId
+    - ``comment`` -- comment about what changed
+    
+
+    **Return**
+
+    - ``None``
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     sqlQuery = """INSERT INTO pesstoObjectsChangeLog (
@@ -778,7 +787,7 @@ def insert_changelog_entry(dbConn, log, transientBucketId, comment):
     try:
         log.debug(
             "attempting to add an entry into the marshall changelog db table")
-        m.execute_mysql_write_query(sqlQuery, dbConn, log)
+        writequery(sqlQuery=sqlQuery, dbConn=self.dbConn, log=self.log)
     except Exception as e:
         log.error(
             "could not add an entry into the marshall changelog db table - failed with this error %s: " %
@@ -786,7 +795,6 @@ def insert_changelog_entry(dbConn, log, transientBucketId, comment):
         return -1
 
     return None
-
 
 # LAST MODIFIED : December 10, 2012
 # CREATED : December 10, 2012
@@ -796,18 +804,20 @@ def change_pesstoObjects_flag(dbConn, log, pesstoObjectsId, flag, value):
     *Convert a flag in the ``pesstoObjects`` db table to shift the object through the various marshall workflows.
     A comment is also added to the marshall changelog table.*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``pesstoObjectsId`` -- ID of the object in the pesstoObjects table
-        - ``flag`` -- the flag that needs changed
-        - ``value`` -- value the flag is to be changed to
+    **Key Arguments**
 
-    **Return:**
-        - ``None``
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``pesstoObjectsId`` -- ID of the object in the pesstoObjects table
+    - ``flag`` -- the flag that needs changed
+    - ``value`` -- value the flag is to be changed to
+    
+
+    **Return**
+
+    - ``None``
+    
     """
-    ################ > IMPORTS ################
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
 
@@ -818,7 +828,9 @@ def change_pesstoObjects_flag(dbConn, log, pesstoObjectsId, flag, value):
     try:
         log.debug("attempting to find %s flag for pesstoObjectsId %s" %
                   (flag, pesstoObjectsId,))
-        currentFlag = m.execute_mysql_read_query(currentFlagQuery, dbConn, log)
+
+        currentFlag = readquery(
+            log=log, sqlQuery=currentFlagQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not find %s flag for pesstoObjectsId %s - failed with this error %s: " %
@@ -853,9 +865,9 @@ def change_pesstoObjects_flag(dbConn, log, pesstoObjectsId, flag, value):
         log.debug(
             "attempting to update the alert workflow flag for pesstoObjectsId %s" %
             (pesstoObjectsId,))
-        m.execute_mysql_write_query(sqlQuery, dbConn, log)
-        m.execute_mysql_write_query(sqlQuery2, dbConn, log)
-        m.execute_mysql_write_query(sqlQuery3, dbConn, log)
+        writequery(sqlQuery=sqlQuery, dbConn=self.dbConn, log=self.log)
+        writequery(sqlQuery=sqlQuery2, dbConn=self.dbConn, log=self.log)
+        writequery(sqlQuery=sqlQuery3, dbConn=self.dbConn, log=self.log)
     except Exception as e:
         log.error(
             "could not update the alert workflow flag for pesstoObjectsId %s - failed with this error %s: " %
@@ -863,7 +875,6 @@ def change_pesstoObjects_flag(dbConn, log, pesstoObjectsId, flag, value):
         return -1
 
     return None
-
 
 # LAST MODIFIED : December 11, 2012
 # CREATED : December 11, 2012
@@ -877,17 +888,20 @@ def count_objects_with_flagset(
     """
     *Get the count of the number of objects in the Marshall with a specific flagset*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``mwfFlag`` -- marshall workflow location
-        - ``awfFlag`` -- alert workflow location
-        - ``cFlag`` -- classification flag
+    **Key Arguments**
 
-    **Return:**
-        - ``count`` -- the number of objects with the specified flagset
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``mwfFlag`` -- marshall workflow location
+    - ``awfFlag`` -- alert workflow location
+    - ``cFlag`` -- classification flag
+    
+
+    **Return**
+
+    - ``count`` -- the number of objects with the specified flagset
+    
     """
-    ################ > IMPORTS ################
     ################ > VARIABLE SETTINGS ######
 
     ################ >ACTION(S) ################
@@ -910,7 +924,7 @@ def count_objects_with_flagset(
     try:
         log.debug(
             "attempting to find the number of rows in the db with a specified flagset")
-        rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
         # print sqlQuery + "<br>"
         count = 0
         for row in rows:
@@ -928,12 +942,13 @@ def count_objects_with_flagset(
 # CREATED : January 7, 2013
 # AUTHOR : DRYX
 
-
 def add_object_comment(dbConn, log, transientBucketId, author, comment):
     """
     *Add a comment to the ``pesstoObjectsComments`` table.*
 
-    **Key Arguments:**
+    **Key Arguments**
+
+    
       - ``dbConn`` -- mysql database connection
       - ``log`` -- logger
       - ``paras`` -- FieldStorage parameters passed via the URL
@@ -941,17 +956,17 @@ def add_object_comment(dbConn, log, transientBucketId, author, comment):
       - ``author`` -- the author of the comment
       - ``comment`` -- comment
 
-    **Return:**
+    **Return**
+
+    
       - None
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import sys
     import os
     import cgi as c
     ## LOCAL APPLICATION ##
-    import pessto_marshall_engine.commonutils.mysql as pm
-    import dryxPython.mysql as m
+    import ep3.commonutils.mysql as pm
 
     ################ > VARIABLE SETTINGS ######
 
@@ -977,7 +992,7 @@ def add_object_comment(dbConn, log, transientBucketId, author, comment):
     try:
         log.debug(
             "attempting to add a comment to the pessto marshall database")
-        m.execute_mysql_write_query(sqlQuery, dbConn, log)
+        writequery(sqlQuery=sqlQuery, dbConn=self.dbConn, log=self.log)
     except Exception as e:
         log.error(
             "could not add a comment to the pessto marshall database - failed with this error: %s " %
@@ -985,7 +1000,6 @@ def add_object_comment(dbConn, log, transientBucketId, author, comment):
         return -1
 
     return
-
 
 # LAST MODIFIED : January 21, 2013
 # CREATED : January 21, 2013
@@ -999,7 +1013,9 @@ def record_module_running_time(dbConn,
     """
     *Record the running times of a python module into the pessto marshall database - can be used later for efficiency checks*
 
-    **Key Arguments:**
+    **Key Arguments**
+
+    
       - ``dbConn`` -- mysql database connection
       - ``log`` -- logger
       - ``moduleName`` -- name of the module that has executed
@@ -1007,14 +1023,14 @@ def record_module_running_time(dbConn,
       - ``endTiming`` -- end datetime
       - ``runningTime`` -- total time taken to run
 
-    **Return:**
+    **Return**
+
+    
       - None
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
 
@@ -1028,7 +1044,7 @@ def record_module_running_time(dbConn,
     try:
         log.debug(
             "attempting to add an entry into the execution logs db table")
-        m.execute_mysql_write_query(sqlQuery, dbConn, log)
+        writequery(sqlQuery=sqlQuery, dbConn=self.dbConn, log=self.log)
     except Exception as e:
         log.error(
             "could not add an entry into the executions logs db table - failed with this error: %s " %
@@ -1041,20 +1057,22 @@ def record_module_running_time(dbConn,
 # CREATED : January 25, 2013
 # AUTHOR : DRYX
 
-
 def get_workflow_flags_for_object(dbConn, log, transientBucketId):
     """
     *Get the Marshall Workflow flags (marshall location, alert location, classification) for a given transientBucketId*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``transientBucketId`` -- the objects transientBucketId
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``transientBucketId`` -- the objects transientBucketId
+    
+
+    **Return**
+
+    - None
+    
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -1070,25 +1088,26 @@ def get_workflow_flags_for_object(dbConn, log, transientBucketId):
 # CREATED : January 30, 2013
 # AUTHOR : DRYX
 
-
 def get_pessto_classified_object_counts(dbConn, log, typeList):
     """
     *Return the number of objects in the Marshall DB that have been classified by PESSTO and are found in the ``typeList``*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``typeList`` -- the types of objects you wish to count.
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``typeList`` -- the types of objects you wish to count.
+    
+
+    **Return**
+
+    - None
+    
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import sys
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as m
 
     ################ > VARIABLE SETTINGS ######
     spectralTypes = """spectralType = 9238238424"""
@@ -1113,7 +1132,7 @@ def get_pessto_classified_object_counts(dbConn, log, typeList):
         log.debug(
             "attempting to count the number of objects classified by pessto with the types %s" %
             (typeList,))
-        rows = m.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn)
     except Exception as e:
         log.error(
             "could not count the number of objects classified by pessto with the types %s - failed with this error: %s " %
@@ -1124,7 +1143,6 @@ def get_pessto_classified_object_counts(dbConn, log, typeList):
     count = rows[0]["count(*)"]
 
     return count
-
 
 # LAST MODIFIED : December 11, 2012
 # CREATED : December 11, 2012
@@ -1140,7 +1158,6 @@ def get_pessto_classified_object_counts(dbConn, log, typeList):
 #   **Return:**
 #     - ``rows`` -- returned from mySQL query
 #   """
-#   ################ > IMPORTS ################
 
 #   ################ > VARIABLE SETTINGS ######
 #   sqlQuery = """
@@ -1155,7 +1172,6 @@ def get_pessto_classified_object_counts(dbConn, log, typeList):
 #     return -1
 
 #   return rows
-
 
 ##########################################################################
 # PRIVATE (HELPER) FUNCTIONS                                                                #

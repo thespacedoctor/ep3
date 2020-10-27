@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 29, 2013
-
 Usage:
     pm_update_sofi_mjd_keywords -s <pathToSettingsFile>
     pm_update_sofi_mjd_keywords --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName>
@@ -22,19 +19,18 @@ Options:
     --dbName=<dbName>     database name
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``update_sofi_mjd_keywords.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -50,12 +46,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -99,29 +95,30 @@ def main(arguments=None):
 # CREATED : September 9, 2013
 # AUTHOR : DRYX
 
-
 def update_sofi_mjd_keywords(
         dbConn,
         log):
     """
     *update sofi image mjd keywords -- correcting errors in pipeline output*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import re
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     log.debug('starting the ``update_sofi_mjd_keywords`` function')
     # TEST THE ARGUMENTS
@@ -142,10 +139,10 @@ def update_sofi_mjd_keywords(
             """ % locals()
             print(sqlQuery)
 
-        rows = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         for row in rows:
@@ -169,10 +166,10 @@ def update_sofi_mjd_keywords(
                 sqlQuery = """
                     update %(ft)s set ncombine = "%(ncomb)s" where primaryId = %(primaryId)s and lock_row = 0
                 """ % locals()
-                dms.execute_mysql_write_query(
+                writequery(
+                    log=log,
                     sqlQuery=sqlQuery,
                     dbConn=dbConn,
-                    log=log
                 )
                 print("UPDATE: %(sqlQuery)s " % locals())
 
@@ -185,10 +182,10 @@ def update_sofi_mjd_keywords(
                 select mjd_obs, exptime, filename from %(ft)s  where filename = "%(lastFilename)s"
             """ % locals()
 
-            provRows = dms.execute_mysql_read_query(
-                sqlQuery,
-                dbConn,
-                log
+            provRows = readquery(
+                log=log,
+                sqlQuery=sqlQuery,
+                dbConn=dbConn
             )
 
             # note this should only be one file
@@ -197,7 +194,7 @@ def update_sofi_mjd_keywords(
                 mjd_end = provRow["mjd_obs"] + row["ndit"] * (
                     provRow["exptime"] + 1.8) / (60. * 60. * 24.)
                 telapse = (mjd_end - row["mjd_obs"]) * (60. * 60. * 24.)
-                tmid = (mjd_end + row["mjd_obs"]) / 2.
+                tmid = old_div((mjd_end + row["mjd_obs"]), 2.)
 
                 primaryId = row["primaryId"]
                 if "spectra" in ft:
@@ -209,10 +206,10 @@ def update_sofi_mjd_keywords(
                         update %(ft)s  set mjd_end = %(mjd_end)s, tmid = %(tmid)s where primaryId = %(primaryId)s and lock_row = 0
                     """ % locals()
 
-                dms.execute_mysql_write_query(
-                    sqlQuery,
-                    dbConn,
-                    log
+                writequery(
+                    sqlQuery=sqlQuery,
+                    dbConn=self.dbConn,
+                    log=self.log
                 )
 
     log.debug('completed the ``update_sofi_mjd_keywords`` function')

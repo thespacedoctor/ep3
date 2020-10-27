@@ -5,14 +5,10 @@
 
 :Author:
     David Young
-
-:Date Created:
-    August 30, 2013
 """
 
 import sys
 import os
-
 
 def conesearch_marshall_transientBucket_objects(
         dbConn,
@@ -24,17 +20,20 @@ def conesearch_marshall_transientBucket_objects(
     """
     *conesearch against marshall db*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``ra`` -- the RA to search against
-        - ``dec`` -- the DEC to search against
-        - ``radiusArcSec`` -- radius in arc-sec
-        - ``nearest`` -- report only the nearest object
+    **Key Arguments**
 
-    **Return:**
-        - ``match`` --
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``ra`` -- the RA to search against
+    - ``dec`` -- the DEC to search against
+    - ``radiusArcSec`` -- radius in arc-sec
+    - ``nearest`` -- report only the nearest object
+    
 
+    **Return**
+
+    - ``match`` --
+    
     """
     log.debug(
         'completed the ````conesearch_marshall_transientBucket_objects`` function')

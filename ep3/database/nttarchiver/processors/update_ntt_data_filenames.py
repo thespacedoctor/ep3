@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 29, 2013
-
 Usage:
     pm_update_ntt_data_filenames -s <pathToSettingsFile> -p <pathToArchiveRoot>
     pm_update_ntt_data_filenames --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName> -p <pathToArchiveRoot>
@@ -22,19 +19,15 @@ Options:
     --passwd=<passwd>         database password
     --dbName=<dbName>         database name
 """
-################# GLOBAL IMPORTS ####################
+from builtins import zip
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``update_ntt_data_filenames.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -50,12 +43,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -100,7 +93,6 @@ def main(arguments=None):
 # CREATED : September 4, 2013
 # AUTHOR : DRYX
 
-
 def update_ntt_data_filenames(
         pathToArchiveRoot,
         dbConn,
@@ -108,20 +100,23 @@ def update_ntt_data_filenames(
     """
     *Query the database to determine if the object name in the database has been updated and update the updatedFilename column accordingly.*
 
-    **Key Arguments:**
-        - ``pathToArchiveRoot`` -- path to the root of the local file archive
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``pathToArchiveRoot`` -- path to the root of the local file archive
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import re
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    from dryxPython import mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     log.debug('starting the ``update_ntt_data_filenames`` function')
     # TEST THE ARGUMENTS
@@ -162,10 +157,10 @@ def update_ntt_data_filenames(
 
     # UPDATE updatedFilename
     for table, regex, sqlQuery, prepend, fr in zip(tables, regexs, sqlQueries, prepends, findRelace):
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         for row in rows:
             log.debug('row: %s' % (row,))
@@ -189,10 +184,10 @@ def update_ntt_data_filenames(
 
                 sqlQuery = """UPDATE %s SET updatedFilename = '%s', updatedFilepath = '%s' where primaryId = %s  and lock_row = 0""" % (
                     table, updatedFilename, updatedFilepath, row["primaryId"])
-                dms.execute_mysql_write_query(
-                    sqlQuery,
-                    dbConn,
-                    log
+                writequery(
+                    sqlQuery=sqlQuery,
+                    dbConn=self.dbConn,
+                    log=self.log
                 )
                 log.info('updated object name in filename %s to %s' %
                          (row["updatedFilename"], matchObject.group(1)))
@@ -200,10 +195,10 @@ def update_ntt_data_filenames(
                 log.debug('NOT changing name')
     # UPDATE updatedFilename
     for table, regex, sqlQuery, prepend, fr in zip(tables, regexs, sqlQueries, prepends, findRelace):
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         for row in rows:
             log.debug('row: %s' % (row,))
@@ -217,7 +212,7 @@ def update_ntt_data_filenames(
                 matchObject = row["currentFilename"]
 
             if matchObject:
-                for k, v in fr.items():
+                for k, v in list(fr.items()):
                     log.debug('k, v: %s, %s' % (k, v,))
                     if k in matchObject:
                         updatedFilename = matchObject.replace(k, v)
@@ -227,10 +222,10 @@ def update_ntt_data_filenames(
 
                         sqlQuery = """UPDATE %s SET updatedFilename = '%s', updatedFilepath = '%s' where primaryId = %s  and lock_row = 0""" % (
                             table, updatedFilename, updatedFilepath, row["primaryId"])
-                        dms.execute_mysql_write_query(
-                            sqlQuery,
-                            dbConn,
-                            log
+                        writequery(
+                            sqlQuery=sqlQuery,
+                            dbConn=self.dbConn,
+                            log=self.log
                         )
 
     log.debug('completed the ``update_ntt_data_filenames`` function')

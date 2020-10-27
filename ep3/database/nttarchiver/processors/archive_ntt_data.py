@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 29, 2013
-
 Usage:
     pm_archive_ntt_data -s <pathToSettingsFile>
     pm_archive_ntt_data --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName> -p <pathToArchiveRoot> -d <pathToDropboxFolder>
@@ -23,19 +20,15 @@ Options:
     --passwd=<passwd>           database password
     --dbName=<dbName>           database name
 """
-################# GLOBAL IMPORTS ####################
+from builtins import str
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``archive_ntt_data.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -51,12 +44,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -111,7 +104,6 @@ def main(arguments=None):
 # CREATED : October 1, 2013
 # AUTHOR : DRYX
 
-
 def archive_ntt_data(
         pathToArchiveRoot,
         pathToDropboxRoot,
@@ -120,25 +112,26 @@ def archive_ntt_data(
     """
     *move files from the marshall dropbox to the local archive*
 
-    **Key Arguments:**
-        - ``pathToArchiveRoot`` -- path to the root of the nested folder archive
-        - ``pathToDropboxRoot`` -- path to the marshall dropbox folder
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``pathToArchiveRoot`` -- path to the root of the nested folder archive
+    - ``pathToDropboxRoot`` -- path to the marshall dropbox folder
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import os
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
-    import dryxPython.commonutils as dcu
+    from fundamentals.mysql import readquery, writequery
 
     log.debug('starting the ``archive_ntt_data`` function')
 
@@ -150,10 +143,10 @@ def archive_ntt_data(
         # select the metadata of the rows/files that need archived
         sqlQuery = """SELECT primaryId, filename, currentFilename, updatedFileName, filePath, currentFilePath, updatedFilePath, archivePath from %s where archivedLocally = 0 and updatedFilePath is NUll and filename not like "%%_sb.fits" """ % (
             table,)
-        rows = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
         log.debug('sqlQuery: %s' % (sqlQuery,))
 
@@ -173,20 +166,20 @@ def archive_ntt_data(
                 sqlQuery = """
                     update %s set updatedFileName = "%s", updatedFilePath = "%s" where primaryId = %s
                 """ % (table, updatedFileName, updatedFilePath, row["primaryId"])
-                dms.execute_mysql_write_query(
+                writequery(
+                    log=log,
                     sqlQuery=sqlQuery,
                     dbConn=dbConn,
-                    log=log
                 )
 
         # Select the same file, but now those with an updated filepath in the
         # database
         sqlQuery = """SELECT filename, primaryId, currentFilePath, updatedFilePath from %s where (archivedLocally = 0 and updatedFilePath is not NUll and filename not like "%%_sb.fits") """ % (
             table,)
-        rows = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         for row in rows:
@@ -254,10 +247,10 @@ def archive_ntt_data(
                     update %s set archivedLocally = 1, currentFilename = updatedFilename, currentFilepath = updatedFilepath, updatedFilename = null, updatedFilepath = null where primaryId = %s
                 """ % (table, row["primaryId"])
 
-                dms.execute_mysql_write_query(
+                writequery(
+                    log=log,
                     sqlQuery=sqlQuery,
                     dbConn=dbConn,
-                    log=log
                 )
                 log.info('file %s has been archived' %
                          (row["currentFilePath"],))
@@ -267,10 +260,10 @@ def archive_ntt_data(
     for table in tables:
         sqlQuery = """SELECT primaryId, filename, currentFilename, updatedFileName, filePath, currentFilePath, updatedFilePath, archivePath from %s where archivedLocally = 0 and filename like "%%_sb.fits" """ % (
             table,)
-        rows = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         for row in rows:
@@ -282,10 +275,10 @@ def archive_ntt_data(
                     update %s set currentFilename = "%s", currentFilepath = "%s" where primaryId = %s
                 """ % (table, currentFilename, currentFilepath, row["primaryId"])
 
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
             pathToWriteFile = currentFilepath
@@ -303,10 +296,10 @@ def archive_ntt_data(
             sqlQuery = """
                     update %s set archivedLocally = 1, updatedFilename = null, updatedFilepath = null where primaryId = %s
                 """ % (table, row["primaryId"])
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
     # a double check that empty binary files have been created
@@ -314,10 +307,10 @@ def archive_ntt_data(
     for table in tables:
         sqlQuery = """SELECT primaryId, filename, currentFilename, updatedFileName, filePath, currentFilePath, updatedFilePath, archivePath from %s where archivedLocally = 1 and filename like "%%_sb.fits" """ % (
             table,)
-        rows = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         for row in rows:

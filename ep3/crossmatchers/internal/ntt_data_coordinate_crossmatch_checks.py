@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    July 22, 2014
-
 Usage:
     pm_ntt_data_coordinate_crossmatch_checks -f <filetype> -s <pathToSettingsFile>
 
@@ -18,21 +15,20 @@ Options:
     -s, --settingsFile  path to the settings file
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from __future__ import division
+from builtins import zip
+from past.utils import old_div
 import sys
 import os
 import math
 from operator import itemgetter
 from docopt import docopt
 import numpy as np
-from dryxPython import mysql as dms
-from dryxPython import logs as dl
-from dryxPython import astrotools as dat
-from dryxPython import commonutils as dcu
+from fundamentals.mysql import readquery
 from fundamentals import tools
-import pessto_marshall_engine as pme
+from astrocalc.coords import separations
+import ep3 as pme
 # from ..__init__ import *
-
 
 def main(arguments=None):
     """
@@ -47,12 +43,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -91,7 +87,6 @@ def main(arguments=None):
 # xt-class-module-worker-tmpx
 # xt-class-tmpx
 
-
 ###################################################################
 # PUBLIC FUNCTIONS                                                #
 ###################################################################
@@ -106,12 +101,16 @@ def ntt_data_coordinate_crossmatch_checks(
     """
     *object image vs image crossmatch checks*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -242,12 +241,15 @@ def ntt_data_coordinate_crossmatch_checks(
             for r, d, f, n in zip(thisObject["raArray"], thisObject["decArray"], thisObject["filePathList"], thisObject["fileNameList"]):
                 count += 1
                 # determine angular distance from spectral coordinates
-                angularSeparation = dat.getAngularSeparation(
+                # CALCULATE SEPARATION IN ARCSEC
+                calculator = separations(
+                    log=log,
                     ra1=r,
                     dec1=d,
                     ra2=sRa,
-                    dec2=sDec
+                    dec2=sDec,
                 )
+                angularSeparation, north, east = calculator.get()
                 if angularSeparation > 60:
                     areImagesSeparationsOk = False
                 log.debug("%(f)s sep: %(angularSeparation)s" % locals())
@@ -269,7 +271,7 @@ def ntt_data_coordinate_crossmatch_checks(
                 reversed(sorted(susFiles.items())))
 
             susFiles = ""
-            for k, v in osusFiles.items():
+            for k, v in list(osusFiles.items()):
                 link = v[0]
                 sep = v[1]
                 masterSusFilesList.append([link, sep])
@@ -304,11 +306,13 @@ def ntt_data_coordinate_crossmatch_checks(
                 sqlQuery = """
                     select raDeg, decDeg from pessto_marshall_object_summaries where name = "%(objectName)s" order by raDeg limit 1
                 """ % locals()
-                marshallRows = dms.execute_mysql_read_query(
+
+                marshallRows = readquery(
+                    log=log,
                     sqlQuery=sqlQuery,
-                    dbConn=dbConn,
-                    log=log
+                    dbConn=dbConn
                 )
+
                 if len(marshallRows):
                     mRa = marshallRows[0]["raDeg"]
                     mDec = marshallRows[0]["decDeg"]
@@ -322,12 +326,15 @@ def ntt_data_coordinate_crossmatch_checks(
                 count = 0
                 for r, d, f, n in zip(thisObject["raArray"], thisObject["decArray"], thisObject["filePathList"], thisObject["fileNameList"]):
                     count += 1
-                    angularSeparation = dat.getAngularSeparation(
+                    calculator = separations(
+                        log=log,
                         ra1=r,
                         dec1=d,
                         ra2=thisObject["meanRa"],
-                        dec2=thisObject["meanDec"]
+                        dec2=thisObject["meanDec"],
                     )
+                    angularSeparation, north, east = calculator.get()
+
                     if (angularSeparation > 1.5 * thisStdRms) or totalFiles == 2:
                         f = f.replace("/misc/pessto/data/ntt_data/archive/",
                                       "http://www.pessto.org/private/data/ntt/")
@@ -339,7 +346,7 @@ def ntt_data_coordinate_crossmatch_checks(
                     reversed(sorted(susFiles.items())))
 
                 susFiles = ""
-                for k, v in osusFiles.items():
+                for k, v in list(osusFiles.items()):
                     link = v[0]
                     sep = v[1]
                     masterSusFilesList.append([link, sep])
@@ -347,9 +354,11 @@ def ntt_data_coordinate_crossmatch_checks(
                     )
 
                 if isinstance(mRa, ("".__class__, u"".__class__)):
-                    print("""| %(objectName)s | %(mRa)s | %(mDec)s | %(thisStdRms)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals())
+                    print(
+                        """| %(objectName)s | %(mRa)s | %(mDec)s | %(thisStdRms)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals())
                 else:
-                    print("""| %(objectName)s | %(mRa)0.5f| %(mDec)0.5f | %(thisStdRms)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals())
+                    print(
+                        """| %(objectName)s | %(mRa)0.5f| %(mDec)0.5f | %(thisStdRms)0.2f | %(totalFiles)s | %(susFiles)s |""" % locals())
 
         # print the image list again as a seperate table
         print("\n\n| %(fileType)s link | angle from mean | notes |" % locals())
@@ -370,7 +379,6 @@ def ntt_data_coordinate_crossmatch_checks(
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
-
 def calculate_coordinate_info_for_objects_in_list(
         dbConn,
         log,
@@ -380,14 +388,18 @@ def calculate_coordinate_info_for_objects_in_list(
     """
     *calculate mean coordinated from objects in list*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        # copy usage method(s) here and select the following snippet from the command palette:
-        # x-setup-docstring-keys-from-selected-usage-options
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    # copy usage method(s) here and select the following snippet from the command palette:
+    # x-setup-docstring-keys-from-selected-usage-options
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -413,11 +425,13 @@ def calculate_coordinate_info_for_objects_in_list(
             union all
             select currentFilename, currentFilepath, ra, decl from sofi_%(setup)s where object = "%(thisObject)s" %(dataRel)s %(noWeights)s 
         """ % locals()
-        rows = dms.execute_mysql_read_query(
+
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
+
         raArray = []
         decArray = []
         filePathList = []
@@ -440,7 +454,7 @@ def calculate_coordinate_info_for_objects_in_list(
             tinyDict["raArray"]) * np.cos(tinyDict["meanDec"] * math.pi / 180.)
         tinyDict["stdDec"] = np.std(tinyDict["decArray"])
         tinyDict["stdRms"] = np.sqrt(
-            (tinyDict["stdRa"] ** 2 + tinyDict["stdDec"] ** 2) / 2)
+            old_div((tinyDict["stdRa"] ** 2 + tinyDict["stdDec"] ** 2), 2))
         objectAttributes.append(tinyDict)
 
     objectAttributes = list(objectAttributes)
@@ -458,7 +472,6 @@ def calculate_coordinate_info_for_objects_in_list(
 ###################################################################
 # PRIVATE (HELPER) FUNCTIONS                                      #
 ###################################################################
-
 
 ############################################
 # CODE TO BE DEPECIATED                    #

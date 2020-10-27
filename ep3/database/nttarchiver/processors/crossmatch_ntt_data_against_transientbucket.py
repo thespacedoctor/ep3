@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 29, 2013
-
 Usage:
     pm_crossmatch_ntt_data_against_transientbucket -s <pathToSettingsFile> [update]
     pm_crossmatch_ntt_data_against_transientbucket --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName> [update]
@@ -23,19 +20,17 @@ Options:
     --dbName=<dbName>      database name
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from builtins import zip
+from builtins import str
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
+from HMpTy.mysql import add_htm_ids_to_mysql_database_table
 
 def main(arguments=None):
     """
     *The main function used when ``crossmatch_ntt_data_against_transientbucket.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -51,12 +46,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -104,7 +99,6 @@ def main(arguments=None):
 # CREATED : October 29, 2013
 # AUTHOR : DRYX
 
-
 def crossmatch_ntt_data_against_transientbucket(
         dbConn,
         log,
@@ -114,38 +108,42 @@ def crossmatch_ntt_data_against_transientbucket(
 
     *Crossmatch the NTT Data using the RA and DEC found in the fits headers (telescope pointings) against the transientBucket and associate with the closest match.*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``updateArchivedFile`` -- update the names in the archived files?
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``updateArchivedFile`` -- update the names in the archived files?
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
-
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
     import dryxPython.fitstools as dft
-    from pessto_marshall_engine.database import crossmatchers as pmcm
-    from dryxPython import mysql as dms
+    from ep3.database import crossmatchers as pmcm
+    from fundamentals.mysql import readquery, writequery
 
     log.debug(
         'completed the ````crossmatch_ntt_data_against_transientbucket`` function')
     ## VARIABLES ##
 
-    # before crossmatch clean up the htmid columns
-    dms.add_HTMIds_to_mysql_tables.add_HTMIds_to_mysql_tables(
+    dbSettings = "???"
+
+    add_htm_ids_to_mysql_database_table(
         raColName="raDeg",
         declColName="decDeg",
         tableName="transientBucket",
         dbConn=dbConn,
         log=log,
-        primaryIdColumnName="primaryKeyId")
+        primaryIdColumnName="primaryKeyId",
+        dbSettings=dbSettings
+    )
 
     # first the NON-RAW IMAGING DATA
     tableNames = ["efosc_imaging", "sofi_imaging"]
@@ -165,10 +163,10 @@ def crossmatch_ntt_data_against_transientbucket(
     sqlQuery = """
         select distinct name from transientBucket where transientBucketId = 352873;
     """
-    rows = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
     for r in rows:
         PESSTOESO154Names.append(r["name"])
@@ -177,10 +175,10 @@ def crossmatch_ntt_data_against_transientbucket(
     sqlQuery = """
         select distinct name from transientBucket where transientBucketId = 45354;
     """
-    rows = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
     for r in rows:
         SN2013fcNames.append(r["name"])
@@ -190,10 +188,10 @@ def crossmatch_ntt_data_against_transientbucket(
         sqlQuery = """
             SELECT primaryId, RA, DECL, object, ESO_OBS_TARG_NAME, transientBucketId, currentFilename FROM %s WHERE RA is not NULL and filename not like '%s%%' and (filetype_key_calibration = 13 or filetype_key_calibration = 10 or filetype_key_calibration = 11) %s  and lock_row = 0
         """ % (t, s, updateArchivedFile)
-        rows = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         totalCount = len(rows)
@@ -236,7 +234,8 @@ def crossmatch_ntt_data_against_transientbucket(
                         UPDATE %s SET isInTransientBucket = 1
                             WHERE primaryID = %s and lock_row = 0""" % (t, row["primaryId"])
                 else:
-                    print("requesting a name update from %(objectName)s" % locals())
+                    print("requesting a name update from %(objectName)s" %
+                          locals())
                     sqlQuery = """
                         UPDATE %s SET transientBucketId = %s, isInTransientBucket = 1, rewriteFitsHeader = 1, updateObjectName = 1
                             WHERE primaryID = %s  and lock_row = 0""" % (t, transientBucketId, row["primaryId"])
@@ -249,10 +248,10 @@ def crossmatch_ntt_data_against_transientbucket(
                 sqlQuery = """
                     UPDATE %s SET isInTransientBucket = 1, transientBucketId = %s
                         WHERE primaryID = %s  and lock_row = 0""" % (t, transientBucketId, row["primaryId"])
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
     print("checking the NTT spectral data")
@@ -268,10 +267,10 @@ def crossmatch_ntt_data_against_transientbucket(
         sqlQuery = """
             SELECT primaryId, RA, DECL, object, transientBucketId, ESO_OBS_TARG_NAME, currentFilename FROM %s WHERE RA is not NULL and filename not like '%s%%' and (filetype_key_calibration = 13 or filetype_key_calibration = 10 or filetype_key_calibration = 11) %s  and lock_row = 0
         """ % (t, s, updateArchivedFile)
-        rows = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         totalCount = len(rows)
@@ -326,10 +325,10 @@ def crossmatch_ntt_data_against_transientbucket(
                 sqlQuery = """
                     UPDATE %s SET isInTransientBucket = 1, transientBucketId = %s
                         WHERE primaryID = %s  and lock_row = 0""" % (t, row["primaryId"], transientBucketId)
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
     # UPDATE THE NAMES IN THE OBJECT FIELD OF THE FITS FILES
@@ -344,10 +343,10 @@ def crossmatch_ntt_data_against_transientbucket(
         """ % (t, s)
 
         try:
-            rows = dms.execute_mysql_read_query(
-                sqlQuery,
-                dbConn,
-                log
+            rows = readquery(
+                log=log,
+                sqlQuery=sqlQuery,
+                dbConn=dbConn
             )
         except Exception as e:
             log.error(
@@ -367,10 +366,10 @@ def crossmatch_ntt_data_against_transientbucket(
             count += 1
 
             try:
-                idRows = dms.execute_mysql_read_query(
+                idRows = readquery(
+                    log=log,
                     sqlQuery=sqlQuery,
-                    dbConn=dbConn,
-                    log=log
+                    dbConn=dbConn
                 )
             except Exception as e:
                 log.error(
@@ -382,10 +381,10 @@ def crossmatch_ntt_data_against_transientbucket(
                 sqlQuery = u"""
                     update %(t)s set transientBucketId = 0, isInTransientBucket = null, updateObjectName = 0 where transientBucketId = %(thisId)s and lock_row = 0
                 """ % locals()
-                dms.execute_mysql_write_query(
-                    sqlQuery=sqlQuery,
-                    dbConn=dbConn,
+                readquery(
                     log=log,
+                    sqlQuery=sqlQuery,
+                    dbConn=dbConn
                 )
                 continue
 
@@ -399,10 +398,10 @@ def crossmatch_ntt_data_against_transientbucket(
                     UPDATE %s SET updateObjectName = 0
                         WHERE primaryID = %s  and lock_row = 0""" % (t, row["primaryId"])
             try:
-                dms.execute_mysql_write_query(
+                writequery(
+                    log=log,
                     sqlQuery=sqlQuery,
                     dbConn=dbConn,
-                    log=log
                 )
             except Exception as e:
                 log.error(
@@ -418,10 +417,10 @@ def crossmatch_ntt_data_against_transientbucket(
         sqlQuery = """
             SELECT primaryId, RA, DECL FROM %s WHERE RA is not NULL %s
         """ % (t, updateArchivedFile)
-        rows = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         totalCount = len(rows)
@@ -447,10 +446,10 @@ def crossmatch_ntt_data_against_transientbucket(
                 sqlQuery = """
                     UPDATE %s SET isInTransientBucket = 0
                         WHERE primaryID = %s  and lock_row = 0""" % (t, row["primaryId"])
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
     log.info(

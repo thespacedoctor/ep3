@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 28, 2013
-
 Usage:
     pm_ingest_fits_files_in_ntt_dropbox_folder -s <pathToSettingsFile>
     pm_ingest_fits_files_in_ntt_dropbox_folder --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName> --pathToDropboxFolder=<pathToDropboxFolder> --pathToArchiveRoot=<pathToArchiveRoot>
@@ -24,19 +21,15 @@ Options:
     --pathToArchiveRoot=<pathToArchiveRoot>       path to root of the NTT data archive (nested folders)
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from builtins import str
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``ingest_fits_files_in_ntt_dropbox_folder.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -52,12 +45,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -112,7 +105,6 @@ def main(arguments=None):
 # CREATED : October 28, 2013
 # AUTHOR : DRYX
 
-
 def ingest_fits_files_in_ntt_dropbox_folder(
         dbConn,
         log,
@@ -121,14 +113,18 @@ def ingest_fits_files_in_ntt_dropbox_folder(
     """
     *recursive ingest of fits files in directory*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``pathToDropboxRoot`` -- path to the root directory from which to recusively ingest fits files
-        - ``pathToArchiveRoot`` -- path to the root of the archive
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``pathToDropboxRoot`` -- path to the root directory from which to recusively ingest fits files
+    - ``pathToArchiveRoot`` -- path to the root of the archive
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -136,11 +132,9 @@ def ingest_fits_files_in_ntt_dropbox_folder(
         @review: when complete add logging
         @review: when complete, decide whether to abstract function to another module
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.commonutils as dcu
 
     log.debug(
         'completed the ````ingest_fits_files_in_ntt_dropbox_folder`` function')
@@ -185,7 +179,6 @@ def ingest_fits_files_in_ntt_dropbox_folder(
 # CREATED : August 19, 2013
 # AUTHOR : DRYX
 
-
 def _ingest_fits_file(
         log,
         dbConn,
@@ -195,15 +188,19 @@ def _ingest_fits_file(
     """
     *Ingest the header of a fits file, alongside it's name and path into the ntt_dropbox table*
 
-    **Key Arguments:**
-        - ``log`` -- logger
-        - ``dbConn`` -- the database connection
-        - ``pathToFitsFile`` -- the path to the fits file we wish to ingest
-        - ``pathToArchiveRoot`` -- path to the root of the archive
-        - ``pathToDropboxRoot`` -- path to the root directory from which to recusively ingest fits files
+    **Key Arguments**
 
-    **Return:**
-        - ``None``
+    - ``log`` -- logger
+    - ``dbConn`` -- the database connection
+    - ``pathToFitsFile`` -- the path to the fits file we wish to ingest
+    - ``pathToArchiveRoot`` -- path to the root of the archive
+    - ``pathToDropboxRoot`` -- path to the root directory from which to recusively ingest fits files
+    
+
+    **Return**
+
+    - ``None``
+    
 
     .. todo::
 
@@ -211,12 +208,11 @@ def _ingest_fits_file(
         @review: when complete add logging
         @review: when complete, decide whether to abstract function to another module
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
     import dryxPython.fitstools as dft
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import convert_dictionary_to_mysql_table
 
     log.debug('starting the ``ingest_fits_file`` function')
 
@@ -250,10 +246,10 @@ def _ingest_fits_file(
     where
         filename = '%s' and updatedFilepath is null and currentFilepath is not null)) as test""" % (basename, basename, basename, basename,)
 
-    rows = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     # MOVE FILE TO DUPLICATES FOLDER IF ALREADY IN THE MARSHALL DATABASE
@@ -296,10 +292,10 @@ def _ingest_fits_file(
         sofi_spectra
     where
         filename = '%s' and (updatedFilepath is not null or currentFilepath is null))) as test""" % (basename, basename, basename, basename,)
-    rows = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
     if rows[0]["SUM(NUMBER)"] == 1:
         log.warning('file already in db but not archived yet: %s' %
@@ -346,7 +342,7 @@ def _ingest_fits_file(
 
     # CONVERT BOOLEAN TO STRING
     dictCopy = fitsFileHeaderDictionary
-    for k, v in fitsFileHeaderDictionary.items():
+    for k, v in list(fitsFileHeaderDictionary.items()):
         if isinstance(v[0], bool):
             if v[0]:
                 dictCopy[k] = ["T", v[1]]
@@ -377,12 +373,15 @@ def _ingest_fits_file(
     log.debug('mysqlTableName to ingest into: %s' % (mysqlTableName,))
 
     try:
-        dms.convert_dictionary_to_mysql_table(
+        insertCommand, valueTuple = convert_dictionary_to_mysql_table(
             dbConn=dbConn,
             log=log,
             dictionary=fitsFileHeaderDictionary,
             dbTableName=mysqlTableName,
-            uniqueKeyList=["filename", ]
+            uniqueKeyList=["filename", ],
+            dateModified=False,
+            returnInsertOnly=False,
+            replace=False
         )
     except:
         log.error(
@@ -398,19 +397,22 @@ def _ingest_fits_file(
 # CREATED : August 26, 2013
 # AUTHOR : DRYX
 
-
 def _get_fits_file_type(
         log,
         fitsFileHeaderDictionary):
     """
     *get fits file type for a given fits file header dictionary*
 
-    **Key Arguments:**
-        - ``log`` -- logger
-        - ``fitsFileHeaderDictionary`` -- the python version of the fits file header
+    **Key Arguments**
 
-    **Return:**
-        - ``mysqlTableName`` -- the name of the mysql table to ingest the fits file info into
+    - ``log`` -- logger
+    - ``fitsFileHeaderDictionary`` -- the python version of the fits file header
+    
+
+    **Return**
+
+    - ``mysqlTableName`` -- the name of the mysql table to ingest the fits file info into
+    
 
     .. todo::
 
@@ -418,7 +420,6 @@ def _get_fits_file_type(
         @review: when complete add logging
         @review: when complete, decide whether to abstract function to another module
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -446,7 +447,7 @@ def _get_fits_file_type(
 
         if "INSTRUME" not in fitsFileHeaderDictionary:
             message = ""
-            for k, v in fitsFileHeaderDictionary.items():
+            for k, v in list(fitsFileHeaderDictionary.items()):
                 message += "%s: %s\n" % (k, v[0])
             message += '"INSTRUME" keyword missing or blank for file %s[%s]' % (
                 fitsFileHeaderDictionary['filePath'][0], fitsFileHeaderDictionary['headerExtension'][0],)
@@ -493,7 +494,6 @@ def _get_fits_file_type(
 
     log.debug('completed the ``get_fits_file_type`` function')
     return mysqlTableName
-
 
 ############################################
 # CODE TO BE DEPECIATED                    #

@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 28, 2013
-
 Usage:
     clean_transientbucket_coordinates -s <pathToSettingsFile>
     clean_transientbucket_coordinates --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName>
@@ -21,19 +18,14 @@ Options:
     --passwd=<passwd>   database password
     --dbName=<dbName>   database name
 """
-################# GLOBAL IMPORTS ####################
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``clean_transientbucket_coordinates.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -49,12 +41,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -123,7 +115,6 @@ def main(arguments=None):
 # CREATED : October 28, 2013
 # AUTHOR : DRYX
 
-
 def clean_transientbucket_coordinates(
     log,
     dbConn,
@@ -131,23 +122,26 @@ def clean_transientbucket_coordinates(
     """
     *clean_transientbucket_coordinates*
 
-    **Key Arguments:**
-        - ``log`` -- the logger
-        - ``dbConn`` -- the database connection
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``log`` -- the logger
+    - ``dbConn`` -- the database connection
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
         @review: when complete, clean worker function and add comments
         @review: when complete add logging
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     # select all the rows in the transient bucket where the RA and DEC are NOT
     # set -- also return the RA, DEC and htm data for the master row for each
@@ -156,10 +150,10 @@ def clean_transientbucket_coordinates(
         select v.raDeg, v.decDeg, v.transientBucketId, v.htm20ID, v.htm16ID, v.cx, v.cy, v.cz, t.raDeg, t.decDeg, t.transientBucketId from transientBucket t, view_transientBucketMaster v where replacedByRowId = 0 and t.raDeg is Null and t.transientBucketId = v.transientBucketId;
     """
 
-    rows = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     # update the transientbucket row by substituting in the
@@ -181,10 +175,10 @@ def clean_transientbucket_coordinates(
             row["transientBucketId"]
         )
 
-        dms.execute_mysql_write_query(
+        writequery(
+            log=log,
             sqlQuery=sqlQuery,
             dbConn=dbConn,
-            log=log
         )
 
     return None

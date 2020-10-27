@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 28, 2013
-
 Usage:
     pm_export_pessto_classifications -s <pathToSettingsFile>
     pm_export_pessto_classifications --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName> --exportFile=<pathToExportFile>
@@ -23,19 +20,15 @@ Options:
     --dbName=<dbName>                  database name
     --exportFile=<pathToExportFile>    path of the file to export the results to
 """
-################# GLOBAL IMPORTS ####################
+from builtins import str
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``pessto_classifications.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -51,12 +44,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -133,7 +126,6 @@ def main(arguments=None):
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
-
 def pessto_classifications(
     log,
     dbConn,
@@ -142,25 +134,28 @@ def pessto_classifications(
     """
     *pessto_classifications*
 
-    **Key Arguments:**
-        - ``log`` -- the logger
-        - ``dbConn`` -- the database connection
-        - ``exportFile`` -- path of text file to export the results to
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``log`` -- the logger
+    - ``dbConn`` -- the database connection
+    - ``exportFile`` -- path of text file to export the results to
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
         @review: when complete, clean worker function and add comments
         @review: when complete add logging
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import datetime as d
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery
 
     fob = open(exportFile, 'w')
 
@@ -181,7 +176,11 @@ def pessto_classifications(
     try:
         log.debug(
             "attempting to get the classification data for the PESSTO Objects")
-        rows = dms.execute_mysql_read_query(sqlQuery, dbConn, log)
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
+        )
     except Exception as e:
         log.error(
             "could not get the classification data for the PESSTO Objects - failed with this error: %s " %
@@ -209,7 +208,11 @@ def pessto_classifications(
             log.debug(
                 "attempting to grab the coordinates of transientBucketId %s" %
                 (row["transientBucketId"],))
-            rows = dms.execute_mysql_read_query(sqlQuery, dbConn, log)
+            rows = readquery(
+                log=log,
+                sqlQuery=sqlQuery,
+                dbConn=dbConn
+            )
             # COLLECT AND RETURN THE RESULTS - A LIST OF DICTIONARIES
             raDeg, decDeg = rows[0]["raDeg"], rows[0]["decDeg"]
         except Exception as e:

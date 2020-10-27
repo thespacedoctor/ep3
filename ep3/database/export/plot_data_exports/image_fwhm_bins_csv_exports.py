@@ -6,23 +6,19 @@
 :Author:
     David Young
 
-:Date Created:
-    June 18, 2014
-
 .. todo::
     
     @review: when complete pull all general functions and classes into dryxPython
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from __future__ import division
+from past.utils import old_div
 import sys
 import os
 import csv
 from docopt import docopt
 import numpy as np
-from dryxPython import logs as dl
-from dryxPython import mysql as dms
-from dryxPython import commonutils as dcu
+from fundamentals.mysql import readquery, writequery
 from fundamentals import tools
 # from ..__init__ import *
 
@@ -31,7 +27,6 @@ from fundamentals import tools
 ###################################################################
 # xt-class-module-worker-tmpx
 # xt-class-tmpx
-
 
 ###################################################################
 # PUBLIC FUNCTIONS                                                #
@@ -46,12 +41,16 @@ def image_fwhm_bins_csv_exports(
     """
     *image fwhm bins csv exports*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -66,25 +65,25 @@ def image_fwhm_bins_csv_exports(
         "efosc": ["B639", "V641", "R642", "i705"]
     }
 
-    for inst, v in filterSets.items():
+    for inst, v in list(filterSets.items()):
         for ffilter in v:
 
             sqlQuery = """
                 select PSF_FWHM from %(inst)s_imaging where esoPhaseIII = 1 and filter = "%(ffilter)s" and currentFilename not like "%%weight%%" order by PSF_FWHM
             """ % locals()
-            rows = dms.execute_mysql_read_query(
+            rows = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
 
             print(sqlQuery)
 
             resolution = 0.2
             minValue = int(
-                rows[0]["PSF_FWHM"] / resolution) * resolution + resolution / 2
+                old_div(rows[0]["PSF_FWHM"], resolution)) * resolution + old_div(resolution, 2)
             maxValue = int(
-                rows[len(rows) - 1]["PSF_FWHM"] / resolution) * resolution + resolution / 2
+                old_div(rows[len(rows) - 1]["PSF_FWHM"], resolution)) * resolution + old_div(resolution, 2)
 
             binnedDictionary = {}
             x = np.arange(minValue - 0.2, maxValue + 0.2, resolution)
@@ -96,8 +95,8 @@ def image_fwhm_bins_csv_exports(
                 }
 
             for row in rows:
-                bin = int(row["PSF_FWHM"] / resolution) * \
-                    resolution + resolution / 2
+                bin = int(old_div(row["PSF_FWHM"], resolution)) * \
+                    resolution + old_div(resolution, 2)
                 thisKey = "a%(bin)s" % locals()
                 if thisKey not in list(binnedDictionary.keys()):
                     binnedDictionary[thisKey] = {
@@ -113,7 +112,7 @@ def image_fwhm_bins_csv_exports(
                 import collections
                 obinnedDictionary = collections.OrderedDict(
                     sorted(binnedDictionary.items()))
-                for k, v in obinnedDictionary.items():
+                for k, v in list(obinnedDictionary.items()):
                     bin = v["bin"]
                     count = v["count"]
                     csvFileWriter.writerow(["""%(bin).1f""" % locals(), count])

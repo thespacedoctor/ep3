@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    March 28, 2014
-
 Usage:
     pm_update_eso_phaseIII_metadata_table -s <pathToSettingsFile>
 
@@ -17,20 +14,15 @@ Options:
     -s, --settingsFile  path to the settings file
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-import dryxPython.mysql as dms
-
+from fundamentals.mysql import readquery, writequery
 
 def main(arguments=None):
     """
     *The main function used when ``update_eso_phaseIII_metadata_table.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -46,12 +38,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -92,7 +84,6 @@ def main(arguments=None):
 # PUBLIC FUNCTIONS                                                #
 ###################################################################
 
-
 # use the tab-trigger below for new function
 # LAST MODIFIED : March 31, 2014
 # CREATED : March 31, 2014
@@ -105,14 +96,18 @@ def update_eso_phaseIII_metadata_table(
     """
     *update eso phaseIII metadata table*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        # copy usage method(s) here and select the following snippet from the command palette:
-        # x-setup-docstring-keys-from-selected-usage-options
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    # copy usage method(s) here and select the following snippet from the command palette:
+    # x-setup-docstring-keys-from-selected-usage-options
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -120,7 +115,6 @@ def update_eso_phaseIII_metadata_table(
         - @review: when complete add logging
         - @review: when complete, decide whether to abstract function to another module
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -164,20 +158,20 @@ def update_eso_phaseIII_metadata_table(
             sqlQuery = """
                 select sum(fileSize) as sum from %(t)s where currentFilename %(f)s and data_rel = "%(rv)s" and esoPhaseIII = 1 and data_rel is not null;
             """ % locals()
-            rows = dms.execute_mysql_read_query(
+            rows = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
             totalFilesize = rows[0]["sum"]
 
             sqlQuery = """
                 select count(*) as sum from %(t)s where currentFilename %(f)s and data_rel = "%(rv)s" and esoPhaseIII = 1 and data_rel is not null;
             """ % locals()
-            rows = dms.execute_mysql_read_query(
+            rows = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
             thisCount = rows[0]["sum"]
 
@@ -188,10 +182,10 @@ def update_eso_phaseIII_metadata_table(
             sqlQuery = """
                 update stats_%(rv)s_overview set dataVolumeBytes = %(totalFilesize)s, numberOfFiles = %(thisCount)s where fileType = "%(c)s"
             """ % locals()
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
             print(sqlQuery)
@@ -209,7 +203,6 @@ def update_eso_phaseIII_metadata_table(
 # CREATED : March 28, 2014
 # AUTHOR : DRYX
 
-
 def _update_filetype_metadata_tables(
     log,
     dbConn,
@@ -217,19 +210,22 @@ def _update_filetype_metadata_tables(
     """
     *update_filetype_metadata_tables*
 
-    **Key Arguments:**
-        - ``log`` -- the logger
-        - ``dbConn`` -- the database connection
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``log`` -- the logger
+    - ``dbConn`` -- the database connection
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
         @review: when complete, clean worker function and add comments
         @review: when complete add logging
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -240,10 +236,10 @@ def _update_filetype_metadata_tables(
         sqlQuery = """
             select primaryId, currentFilepath from %(table)s where data_rel is not null;
         """ % locals()
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
 
         for row in rows:
@@ -261,10 +257,10 @@ def _update_filetype_metadata_tables(
             sqlQuery = """
                 update %(table)s set filesize = %(fileSize)s where primaryId = %(primaryId)s 
             """ % locals()
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
     return None

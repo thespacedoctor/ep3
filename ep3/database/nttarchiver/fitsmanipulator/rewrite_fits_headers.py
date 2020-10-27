@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 29, 2013
-
 Usage:
     pm_rewrite_fits_headers -s <pathToSettingsFile>
     pm_rewrite_fits_headers --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName>
@@ -21,24 +18,25 @@ Options:
     --passwd=<passwd>   database password
     --dbName=<dbName>   database name
 """
-################# GLOBAL IMPORTS ####################
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
+from astrocalc.times import conversions
+from astrocalc.coords import unit_conversion
 # SUPPRESS MATPLOTLIB WARNINGS
 import warnings
 warnings.filterwarnings("ignore")
 import pyfits as pf
 
-
 def main(arguments=None):
     """
     *The main function used when ``rewrite_fits_headers.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -54,12 +52,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -103,30 +101,32 @@ def main(arguments=None):
 # CREATED : September 9, 2013
 # AUTHOR : DRYX
 
-
 def rewrite_fits_headers(
         dbConn,
         log):
     """
     *execute required fits header rewrites*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
         -
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import shutil
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     log.debug(
         'completed the ````execute_required_fits_header_and_rename_and_rewrites`` function')
@@ -142,10 +142,10 @@ def rewrite_fits_headers(
         sqlQuery = """
             select currentFilename, currentFilepath, primaryId, updatedFilename, updatedFilepath from %s where updatedFilename is not NULL and lock_row = 0
         """ % (table,)
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
 
         # move the FITS file from the dropbox or current location to the local
@@ -169,10 +169,10 @@ def rewrite_fits_headers(
             sqlQuery = """
                 update %s set currentFilename = '%s', currentFilepath = '%s', updatedFilename = NULL, updatedFilepath = NULL where primaryId = %s  and lock_row = 0
             """ % (table, row["updatedFilename"], row["updatedFilepath"], row["primaryId"])
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
         ## REWRITE FITSHEADERS ##
@@ -181,10 +181,10 @@ def rewrite_fits_headers(
         sqlQuery = """
             select filename, currentFilepath, primaryId from %s where esoPhaseIII = 1 and updatedFilename is NULL and rewriteFitsHeader = 1  and lock_row = 0
         """ % (table,)
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
 
         # rewrite the fits headers
@@ -221,17 +221,16 @@ def rewrite_fits_headers(
                 update %s set rewriteFitsHeader = 0 where primaryId = %s
             """ % (table, row["primaryId"])
             log.debug(sqlQuery)
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
     log.debug(
         'completed the ``execute_required_fits_header_and_rename_and_rewrites`` function')
 
     return None
-
 
 # use the tab-trigger below for new function
 # x-def-with-logger
@@ -249,26 +248,36 @@ def generate_primary_fits_header_from_database(
     """
     *generate fits header from database using the results from the sqlQuery*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``primaryId`` -- primary id of the row in database
-        - ``dbTable`` -- database table name containing file metadata
+    **Key Arguments**
 
-    **Return:**
-        - ``fitsHeader`` -- the fits header generated from results of sql query
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``primaryId`` -- primary id of the row in database
+    - ``dbTable`` -- database table name containing file metadata
+    
+
+    **Return**
+
+    - ``fitsHeader`` -- the fits header generated from results of sql query
+    
 
     .. todo::
-
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import datetime
     from decimal import Decimal
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
-    import dryxPython.astrotools as dat
+    from fundamentals.mysql import readquery, writequery
+
+    # CONVERTER TO CONVERT MJD TO DATE
+    converter = conversions(
+        log=log
+    )
+
+    unit_converter = unit_conversion(
+        log=log
+    )
 
     log.debug(
         'completed the ````generate_primary_fits_header_from_database`` function')
@@ -277,10 +286,10 @@ def generate_primary_fits_header_from_database(
     sqlQuery = """
         SELECT filename, currentFilename, updatedFilename, filetype_key_calibration from %s where primaryId = %s
     """ % (dbTable, primaryId)
-    thisFile = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    thisFile = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     log.debug('sqlQuery for primary header: %s' % (sqlQuery,))
@@ -308,10 +317,10 @@ def generate_primary_fits_header_from_database(
     sqlQuery = """
         SELECT mysql_keyword, fits_keyword, fits_comment from fits_header_keywords where %s = 1
     """ % (thisTable,)
-    cardSyntax = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    cardSyntax = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     # Sort metadata into lists to be used to generate the FITS header cardlists
@@ -328,21 +337,23 @@ def generate_primary_fits_header_from_database(
         SELECT %s from %s where primaryId = %s
     """ % (",".join(mysqlKeywords), dbTable, primaryId)
     log.debug('sqlQuery: %s' % (sqlQuery,))
-    fileMeta = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    fileMeta = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     # clean up a few essential keywords
     fileMeta = fileMeta[0]
-    for k, v in fileMeta.items():
+    for k, v in list(fileMeta.items()):
         if "HIERARCH" not in k and isinstance(v, ("".__class__, u"".__class__)) and len(v) > 68:
             fileMeta[k] = v[0:68]
         if isinstance(v, datetime.datetime):
             if k == "DATE_OBS":
-                fileMeta[k] = dat.getDateFromMJD(
-                    fileMeta["MJD_OBS"]
+                fileMeta[k] = converter.mjd_to_ut_datetime(
+                    mjd=fileMeta[m],
+                    sqlDate=True,
+                    datetimeObject=False
                 )
             fileMeta[k] = str(v).replace(" ", "T")
         elif v == "T":
@@ -359,46 +370,49 @@ def generate_primary_fits_header_from_database(
     for m, f, c in zip(mysqlKeywords, fitsKeywords, fitsComments):
         index += 1
         if m == "RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " RA (J2000) pointing (deg)"
         elif m == "DECL" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
-                delimiter=':'
+                delimiter=":"
             )
             fitsComments[index] = decSex + " DEC (J2000) pointing (deg)"
         elif m == "ESO_ADA_GUID_RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " Guide Star RA J2000"
         elif m == "ESO_ADA_GUID_DEC" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = decSex + " Guide Star DEC J2000"
         elif m == "ESO_TEL_MOON_RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " RA (J2000) (deg)"
         elif m == "ESO_TEL_MOON_DEC" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = decSex + " DEC (J2000) (deg)"
         elif m == "MJD_OBS" and fileMeta[m]:
-            thisDate = dat.getDateFromMJD(
-                fileMeta[m]
+            utDate = converter.mjd_to_ut_datetime(
+                mjd=fileMeta[m],
+                sqlDate=True,
+                datetimeObject=False
             )
-            fitsComments[index] = """MJD start (%(thisDate)s)""" % locals()
+            fitsComments[index] = """MJD start (%(utDate)s)""" % locals()
 
     for m, f, c in zip(mysqlKeywords, fitsKeywords, fitsComments):
         if m in ["SIMPLE", "BITPIX", "NAXIS", "EXTEND"]:
@@ -419,7 +433,6 @@ def generate_primary_fits_header_from_database(
         'completed the ``generate_primary_fits_header_from_database`` function')
     return fitsHeader
 
-
 # LAST MODIFIED : April 9, 2013
 # CREATED : April 9, 2013
 # AUTHOR : DRYX
@@ -427,25 +440,32 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     """
     *Given the primary header from the final NTT Pipeline reduced spectrum, build the extension header needed for the ESO Phase III ready spectrum bintable.*
 
-    **Key Arguments:**
-        - ``log`` -- logger
-        - ``dbConn`` -- mysql database connection
-        - ``pixelCount`` -- number of pixels in the 1D image
-        - ``primaryId`` -- the primaryId of the row in the database table refering to this file (1d spectrum FITS file)
-        - ``instrument`` -- sofi or efosc
-        - ``oneDSpectrumPath`` -- path to the associated 1D spectrum file
+    **Key Arguments**
 
-    **Return:**
-        - ``extensionHeader`` -- the primary header needed for the ESO Phase III ready spectrum bintable.
+    - ``log`` -- logger
+    - ``dbConn`` -- mysql database connection
+    - ``pixelCount`` -- number of pixels in the 1D image
+    - ``primaryId`` -- the primaryId of the row in the database table refering to this file (1d spectrum FITS file)
+    - ``instrument`` -- sofi or efosc
+    - ``oneDSpectrumPath`` -- path to the associated 1D spectrum file
+    
+
+    **Return**
+
+    - ``extensionHeader`` -- the primary header needed for the ESO Phase III ready spectrum bintable.
+    
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import datetime
     ## THIRD PARTY ##
     import numpy as np
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
-    import dryxPython.astrotools as dat
+    from fundamentals.mysql import readquery, writequery
+
+    # CONVERTER TO CONVERT MJD TO DATE
+    converter = conversions(
+        log=log
+    )
 
     ################ > VARIABLE SETTINGS ######
     oneDHduList = pf.open(oneDSpectrumPath)
@@ -459,10 +479,10 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     sqlQuery = """
         SELECT mysql_keyword, fits_keyword, fits_comment from fits_header_keywords where %s = 1
     """ % (thisTable,)
-    cardSyntax = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    cardSyntax = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
     mysqlKeywords = []
     fitsKeywords = []
@@ -477,10 +497,10 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
         SELECT %s from %s where %s = %s
     """ % (",".join(mysqlKeywords), dbTable, primaryIdKey, primaryId)
 
-    fileMeta = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    fileMeta = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     log.debug('sqlQuery to get metadata for binaryTable: %s' % (sqlQuery,))
@@ -490,11 +510,13 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     else:
         raise ValueError(
             "there is no associated database entry for this spectral binary table file")
-    for k, v in fileMeta.items():
+    for k, v in list(fileMeta.items()):
         if isinstance(v, datetime.datetime):
             if k == "DATE_OBS":
-                fileMeta[k] = dat.getDateFromMJD(
-                    fileMeta["MJD_OBS"]
+                fileMeta[k] = converter.mjd_to_ut_datetime(
+                    mjd=fileMeta["MJD_OBS"],
+                    sqlDate=True,
+                    datetimeObject=False
                 )
             fileMeta[k] = str(v).replace(" ", "T")
         if v == "T":
@@ -513,46 +535,49 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     for m, f, c in zip(mysqlKeywords, fitsKeywords, fitsComments):
         index += 1
         if m == "RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " RA (J2000) pointing (deg)"
         elif m == "DECL" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = decSex + " DEC (J2000) pointing (deg)"
         elif m == "ESO_ADA_GUID_RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " Guide Star RA J2000"
         elif m == "ESO_ADA_GUID_DEC" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = decSex + " Guide Star DEC J2000"
         elif m == "ESO_TEL_MOON_RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " RA (J2000) (deg)"
         elif m == "ESO_TEL_MOON_DEC" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = decSex + " DEC (J2000) (deg)"
         elif m == "MJD_OBS" and fileMeta[m]:
-            thisDate = dat.getDateFromMJD(
-                fileMeta[m]
+
+            utDate = converter.mjd_to_ut_datetime(
+                mjd=fileMeta[m],
+                sqlDate=True,
+                datetimeObject=False
             )
-            fitsComments[index] = """MJD start (%(thisDate)s)""" % locals()
+            fitsComments[index] = """MJD start (%(utDate)s)""" % locals()
 
     for m, f, c in zip(mysqlKeywords, fitsKeywords, fitsComments):
         if m in ["BITPIX", "NAXIS"]:
@@ -603,7 +628,6 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
 
     return extensionHeader
 
-
 # LAST MODIFIED : September 9, 2013
 # CREATED : September 9, 2013
 # AUTHOR : DRYX
@@ -618,27 +642,29 @@ def rewrite_fits_file(
     """
     *rewrite fits file given the path to the fits file and the new header*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``instrument`` -- efosc or sofi
-        - ``primaryId`` -- the primaryId of the file in the db table
-        - ``pathToFitsFile`` -- path to the fits file to rewrite
-        - ``fitsHeader`` -- the primary header to write into the fits file
-        - ``binaryTable`` -- if binary table generate data and 2 headers
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``instrument`` -- efosc or sofi
+    - ``primaryId`` -- the primaryId of the file in the db table
+    - ``pathToFitsFile`` -- path to the fits file to rewrite
+    - ``fitsHeader`` -- the primary header to write into the fits file
+    - ``binaryTable`` -- if binary table generate data and 2 headers
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import os
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     log.debug('starting the ``rewrite_fits_file`` function')
 
@@ -653,10 +679,10 @@ def rewrite_fits_file(
         sqlQuery = """
             select primaryId, archivePath, currentFilepath, flux_scaling_factor from %s where primaryId = (select binary_table_associated_spectrum_id from %s where primaryId = %s)  and lock_row = 0;
         """ % (dbTable, dbTable, primaryId,)
-        oneDSpectrumQuery = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        oneDSpectrumQuery = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         log.debug(
@@ -715,7 +741,6 @@ def rewrite_fits_file(
     log.debug('completed the ``rewrite_fits_file`` function')
     return None
 
-
 # LAST MODIFIED : September 9, 2013
 # CREATED : April 9, 2013
 # AUTHOR : DRYX
@@ -723,15 +748,18 @@ def build_bintable_data(log, pathToFitsFile, oneDSpectrumFluxScalingFactor):
     """
     *Build the binary table data extensions of the final reduced spectrum*
 
-    **Key Arguments:**
-        - ``log`` -- logger
-        - ``pathToFitsFile`` -- path to the final NTT Pipeline reduced spectrum.
-        - ``oneDSpectrumFluxScalingFactor`` -- manually measured scaling factor for the spectrum (from photometry)
+    **Key Arguments**
 
-    **Return:**
-        - ``binTableHdu`` -- the binary table HDU
+    - ``log`` -- logger
+    - ``pathToFitsFile`` -- path to the final NTT Pipeline reduced spectrum.
+    - ``oneDSpectrumFluxScalingFactor`` -- manually measured scaling factor for the spectrum (from photometry)
+    
+
+    **Return**
+
+    - ``binTableHdu`` -- the binary table HDU
+    
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     import numpy as np
@@ -777,7 +805,7 @@ def build_bintable_data(log, pathToFitsFile, oneDSpectrumFluxScalingFactor):
     maxWave = primCardList['WAVELMAX'].value * 10.
     rangeWave = maxWave - minWave
     pixelGaps = len(fluxData[0]) - 1
-    delPixel = rangeWave / pixelGaps
+    delPixel = old_div(rangeWave, pixelGaps)
     fluxError = primCardList['SPEC_ERR'].value
 
     wlArray = []
@@ -822,7 +850,6 @@ def build_bintable_data(log, pathToFitsFile, oneDSpectrumFluxScalingFactor):
     hduList.close()
 
     return binTableHdu, pixelCount
-
 
 ############################################
 # CODE TO BE DEPECIATED                    #

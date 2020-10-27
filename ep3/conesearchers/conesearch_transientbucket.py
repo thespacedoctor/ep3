@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 22, 2013
-
 Usage:
     pm_conesearch_transientbucket --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName> --raDeg=<raDeg> --decDeg=<decDeg> --radiusArcSec=<radius>
     pm_conesearch_transientbucket --settingsFile=<pathToSettingsFile> --raDeg=<raDeg> --decDeg=<decDeg> --radiusArcSec=<radius>
@@ -25,17 +22,14 @@ Options:
     --radiusArcSec=<radius>   conesearch radius in arcsecs
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from builtins import zip
+from builtins import str
 import sys
 import os
 from docopt import docopt
-from dryxPython import astrotools as dat
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
+from astrocalc.coords import unit_conversion
 
 def main(arguments=None):
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -89,9 +83,9 @@ def main(arguments=None):
         log.debug('dbConn: %s' % (dbConn,))
 
     # UNPACK REMAINING CL ARGUMENTS
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         varname = arg.replace("--", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + """ = '%s' """ % (val,))
         else:
             exec(varname + """ = %s """ % (val,))
@@ -129,7 +123,6 @@ def main(arguments=None):
 
     return
 
-
 def search(
         dbConn,
         log,
@@ -144,16 +137,20 @@ def search(
     """
     Conesearch the transientBucket table in the PESSTO Marshall with the given arguments.
 
-    **Key Arguments:**
-        - ``dbConn`` - the database connection
-        - ``log`` -- the logger
-        - ``raDeg`` -- right ascendtion (degs)
-        - ``decDeg`` -- declination (deg)
-        - ``radiusArcSec`` -- the radius of the search aperature to use
-        - ``nearest`` -- return just the closest matching result (otherwise return all matches)
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` - the database connection
+    - ``log`` -- the logger
+    - ``raDeg`` -- right ascendtion (degs)
+    - ``decDeg`` -- declination (deg)
+    - ``radiusArcSec`` -- the radius of the search aperature to use
+    - ``nearest`` -- return just the closest matching result (otherwise return all matches)
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -162,24 +159,21 @@ def search(
         @review: when complete, decide whether to abstract function to another module
     """
 
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    from pessto_marshall_engine.database import crossmatchers
+    from ep3.database import crossmatchers
 
-    # CONVERT THE VARIABLES TO FORMAT REQUIRED BY CONESEARCHER
-    try:
-        raDeg = float(raDeg)
-    except:
-        raDeg = dat.ra_sexegesimal_to_decimal.ra_sexegesimal_to_decimal(
-            ra=raDeg)
-
-    try:
-        decDeg = float(decDeg)
-    except:
-        decDeg = dat.declination_sexegesimal_to_decimal.declination_sexegesimal_to_decimal(
-            dec=decDeg)
+    # ASTROCALC UNIT CONVERTER OBJECT
+    converter = unit_conversion(
+        log=log
+    )
+    raDeg = converter.ra_sexegesimal_to_decimal(
+        ra=raDeg
+    )
+    decDeg = converter.dec_sexegesimal_to_decimal(
+        dec=decDeg
+    )
 
     radius = float(radiusArcSec)
 
@@ -192,20 +186,21 @@ def search(
         nearest=nearest
     )
 
-    if (isinstance(transientBucketIdList, long) or isinstance(transientBucketIdList, int)) and not isinstance(transientBucketIdList, bool):
+    if (isinstance(transientBucketIdList, int) or isinstance(transientBucketIdList, int)) and not isinstance(transientBucketIdList, bool):
         transientBucketIdList = [transientBucketIdList]
         raList = [raList]
         decList = [decList]
         objectNameList = [objectNameList]
 
     if transientBucketIdList == None or len(transientBucketIdList) == 0:
-        print("""%s | %s | %s | %s""" % ("NOMATCH".ljust(25), "NOMATCH".ljust(20), "NOMATCH".ljust(20), "NOMATCH".ljust(10)))
+        print("""%s | %s | %s | %s""" % ("NOMATCH".ljust(25),
+                                         "NOMATCH".ljust(20), "NOMATCH".ljust(20), "NOMATCH".ljust(10)))
     else:
         for t, r, d, o in zip(transientBucketIdList, raList, decList, objectNameList):
-            print("""%s | %s | %s | %s""" % (o.ljust(25), str(r).ljust(20), str(d).ljust(20), str(t).ljust(10)))
+            print("""%s | %s | %s | %s""" % (o.ljust(25), str(
+                r).ljust(20), str(d).ljust(20), str(t).ljust(10)))
 
     return transientBucketIdList, raList, decList, objectNameList
-
 
 ###################################################################
 # CLASSES                                                         #
@@ -221,7 +216,6 @@ def search(
 ############################################
 if __name__ == '__main__':
     main()
-
 
 ###################################################################
 # TEMPLATE FUNCTIONS                                              #

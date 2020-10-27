@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    ggd
-
 Usage:
     pm_add_nelem_keyword_value_to_database -s <pathToSettingsFile>
 
@@ -17,19 +14,14 @@ Options:
     -s, --settingsFile  path to the settings file
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``add_nelem_keyword_value_to_database.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -45,12 +37,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -96,7 +88,6 @@ def main(arguments=None):
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
-
 def add_nelem_keyword_value_to_database(
         log,
         dbConn,
@@ -104,25 +95,28 @@ def add_nelem_keyword_value_to_database(
     """
     *add_nelem_keyword_value_to_database*
 
-    **Key Arguments:**
-        # copy usage method(s) here and select the following snippet from the command palette:
-        - ``log`` -- the logger
-        - ``dbConn`` -- the database connection
+    **Key Arguments**
 
-    **Return:**
-        - None
+    # copy usage method(s) here and select the following snippet from the command palette:
+    - ``log`` -- the logger
+    - ``dbConn`` -- the database connection
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
         @review: when complete, clean worker function and add comments
         @review: when complete add logging
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     import pyfits as pf
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     tables = ["sofi_spectra", "efosc_spectra"]
     for table in tables:
@@ -131,10 +125,10 @@ def add_nelem_keyword_value_to_database(
         sqlQuery = """
             select currentFilename, currentFilepath, primaryId from %s where nelem is null and esoPhaseIII = 1 and currentFilename not like "%%sb%%" and currentFilename not like "%%si%%" and updatedFilename is null  and lock_row = 0;
         """ % (table,)
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
 
         for row in rows:
@@ -149,20 +143,20 @@ def add_nelem_keyword_value_to_database(
             sqlQuery = """
                 update %(table)s set nelem = %(nelem)s where primaryId = %(primaryId)s  and lock_row = 0
             """ % locals()
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
         # add nelem to associated binary table spectra rows
         sqlQuery = """
             select binary_table_associated_spectrum_id, primaryId from %(table)s where nelem is null and esoPhaseIII = 1 and currentFilename like "%%sb%%"  and updatedFilename is null  and lock_row = 0;
         """ % locals()
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         for row in rows:
             primaryId = row["primaryId"]
@@ -171,10 +165,10 @@ def add_nelem_keyword_value_to_database(
             sqlQuery = """
                 select nelem from %(table)s where primaryId = %(binary_table_associated_spectrum_id)s
             """ % locals()
-            oneRow = dms.execute_mysql_read_query(
+            oneRow = readquery(
+                log=log,
                 sqlQuery=sqlQuery,
-                dbConn=dbConn,
-                log=log
+                dbConn=dbConn
             )
             for thisRow in oneRow:
                 nelem = thisRow["nelem"]
@@ -186,10 +180,10 @@ def add_nelem_keyword_value_to_database(
                 sqlQuery = """
                     update %(table)s set nelem = %(nelem)s where primaryId = %(primaryId)s  and lock_row = 0
                 """ % locals()
-                dms.execute_mysql_write_query(
+                writequery(
+                    log=log,
                     sqlQuery=sqlQuery,
                     dbConn=dbConn,
-                    log=log
                 )
     return None
 

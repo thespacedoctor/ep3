@@ -6,24 +6,18 @@
 :Author:
     David Young
 
-:Date Created:
-    June 18, 2014
-
 .. todo::
     
     @review: when complete pull all general functions and classes into dryxPython
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
 import sys
 import os
 import csv
 from docopt import docopt
-from dryxPython import mysql as dms
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
+from fundamentals.mysql import readquery
 from fundamentals import tools
-import pessto_marshall_engine.database.housekeeping.flags.update_transientbucketsummaries_flags as utf
+import ep3.database.housekeeping.flags.update_transientbucketsummaries_flags as utf
 # from ..__init__ import *
 
 ###################################################################
@@ -31,7 +25,6 @@ import pessto_marshall_engine.database.housekeeping.flags.update_transientbucket
 ###################################################################
 # xt-class-module-worker-tmpx
 # xt-class-tmpx
-
 
 ###################################################################
 # PUBLIC FUNCTIONS                                                #
@@ -46,12 +39,16 @@ def followup_classification_breakdown_csv_export(
     """
     *classification breakdown csv export*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
@@ -77,22 +74,22 @@ def followup_classification_breakdown_csv_export(
         "type Ia": "Ia",
         "type II-P": "IIP"
     }
-    for k, v in classificationCleaner.items():
+    for k, v in list(classificationCleaner.items()):
         sqlQuery = """
             update transientBucket set spectralType = "%(v)s" where replacedByRowId =0 and spectralType = "%(k)s"
         """ % locals()
-        dms.execute_mysql_write_query(
+        writequery(
+            log=log,
             sqlQuery=sqlQuery,
             dbConn=dbConn,
-            log=log
         )
         sqlQuery = """
             update transientBucketSummaries set recentClassification = "%(v)s" where recentClassification = "%(k)s"
         """ % locals()
-        dms.execute_mysql_write_query(
+        writequery(
+            log=log,
             sqlQuery=sqlQuery,
             dbConn=dbConn,
-            log=log
         )
 
     # Grab the classification names
@@ -101,10 +98,10 @@ def followup_classification_breakdown_csv_export(
         recentClassification is not null and 
         recentClassification not like "%%NUL%%" order by recentClassification; 
     """ % locals()
-    rows = dms.execute_mysql_read_query(
+    rows = readquery(
+        log=log,
         sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        log=log
+        dbConn=dbConn
     )
 
     print(rows)
@@ -116,10 +113,10 @@ def followup_classification_breakdown_csv_export(
         sqlQuery = """
             select "%(thisClassification)s" as recentClassification, count(*) as count from transientBucketSummaries s, pesstoObjects p where recentClassification = "%(thisClassification)s" and p.transientBucketId=s.transientBucketId and p.classifiedFlag=1 and (p.marshallWorkflowLocation like "follow%%")
         """ % locals()
-        counts = dms.execute_mysql_read_query(
+        counts = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
         for count in counts:
             print(count)
@@ -141,7 +138,7 @@ def followup_classification_breakdown_csv_export(
     }
     for row in classifications:
         print(row)
-        for tc, v in topLevelClass.items():
+        for tc, v in list(topLevelClass.items()):
             pec = """%(tc)s-p""" % locals()
             humm = """%(tc)s?""" % locals()
             if pec == row["recentClassification"] or humm == row["recentClassification"]:
@@ -158,10 +155,10 @@ def followup_classification_breakdown_csv_export(
 
     # Recount
     for row in classifications:
-        for tc, v in topLevelClass.items():
+        for tc, v in list(topLevelClass.items()):
             if tc == row["recentClassification"]:
                 row["count"] += v
-        for c, v in otherClass.items():
+        for c, v in list(otherClass.items()):
             if c == row["recentClassification"]:
                 row["count"] += v
 

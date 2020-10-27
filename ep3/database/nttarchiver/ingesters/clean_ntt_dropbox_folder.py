@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    October 28, 2013
-
 Usage:
     pm_clean_ntt_dropbox_folder -s <pathToSettingsFile>
     pm_clean_ntt_dropbox_folder -p <pathToDropboxFolder>
@@ -18,19 +15,16 @@ Options:
     -s, --settingsFile         path to the settings file
     -p, --pathToDropboxFolder  path to the folder where NTT data is dumped, ready for import
 """
-################# GLOBAL IMPORTS ####################
+from builtins import str
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
+from fundamentals.files import recursive_directory_listing
 
 def main(arguments=None):
     """
     *The main function used when ``clean_ntt_dropbox_folder.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -46,12 +40,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -108,7 +102,6 @@ def main(arguments=None):
 # CREATED : October 28, 2013
 # AUTHOR : DRYX
 
-
 def clean_ntt_dropbox_folder(
         log,
         pathToDropboxFolder
@@ -116,24 +109,26 @@ def clean_ntt_dropbox_folder(
     """
     *clean dropbox folder -  remove non fits files*
 
-    **Key Arguments:**
-        - ``log`` -- logger
-        - ``pathToDropboxFolder`` -- path to the folder to clean
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``log`` -- logger
+    - ``pathToDropboxFolder`` -- path to the folder to clean
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
     @review: when complete, clean clean_ntt_dropbox_folder function & add logging
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     from subprocess import call
     import time
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.commonutils as dcu
 
     log.debug(
         'completed the ````clean_ntt_dropbox_folder`` function')
@@ -141,10 +136,10 @@ def clean_ntt_dropbox_folder(
 
     basePath = pathToDropboxFolder
 
-    directoryContents = dcu.get_recursive_list_of_directory_contents(
-        log,
+    directoryContents = recursive_directory_listing(
+        log=log,
         baseFolderPath=pathToDropboxFolder,
-        whatToList='all'
+        whatToList="all"  # all | files | dirs
     )
 
     for d in directoryContents:

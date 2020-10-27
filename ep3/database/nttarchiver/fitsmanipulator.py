@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    September 8, 2013
-
 :Notes:
     - If you have any questions requiring this script please email me: davidrobertyoung@gmail.com
 
@@ -17,9 +14,15 @@
     @soon: delete this file when cron jobs are working on VM03
 """
 from __future__ import print_function
-################# GLOBAL IMPORTS ####################
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import os
+from astrocalc.times import conversions
+from astrocalc.coords import unit_conversion
 
 ###################################################################
 # CLASSES                                                         #
@@ -32,7 +35,6 @@ import os
 # CREATED : September 8, 2013
 # AUTHOR : DRYX
 
-
 def generate_primary_fits_header_from_database(
         dbConn,
         log,
@@ -42,32 +44,42 @@ def generate_primary_fits_header_from_database(
 
     *generate fits header from database using the results from the sqlQuery*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``primaryId`` -- primary id of the row in database
-        - ``dbTable`` -- database table name containing file metadata
+    **Key Arguments**
 
-    **Return:**
-        - ``fitsHeader`` -- the fits header generated from results of sql query
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``primaryId`` -- primary id of the row in database
+    - ``dbTable`` -- database table name containing file metadata
+    
+
+    **Return**
+
+    - ``fitsHeader`` -- the fits header generated from results of sql query
+    
 
     .. todo::
-
-
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import datetime
     from decimal import Decimal
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
     import pyfits as pf
-    import dryxPython.mysql as dms
-    import dryxPython.astrotools as dat
+    from fundamentals.mysql import readquery, writequery
 
     log.debug(
         'completed the ````generate_primary_fits_header_from_database`` function')
     # TEST THE ARGUMENTS
+
+    # CONVERTER TO CONVERT MJD TO DATE
+    converter = conversions(
+        log=log
+    )
+
+    # ASTROCALC UNIT CONVERTER OBJECT
+    unit_converter = unit_conversion(
+        log=log
+    )
 
     ## VARIABLES ##
     if "imaging" in dbTable:
@@ -78,10 +90,10 @@ def generate_primary_fits_header_from_database(
     sqlQuery = """
         SELECT filename, currentFilename, updatedFilename, filetype_key_calibration from %s where primaryId = %s
     """ % (dbTable, primaryId)
-    thisFile = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    thisFile = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     log.debug('sqlQuery for primary header: %s' % (sqlQuery,))
@@ -101,10 +113,10 @@ def generate_primary_fits_header_from_database(
     sqlQuery = """
         SELECT mysql_keyword, fits_keyword, fits_comment from fits_header_keywords where %s = 1
     """ % (thisTable,)
-    cardSyntax = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    cardSyntax = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
     mysqlKeywords = []
     fitsKeywords = []
@@ -118,20 +130,22 @@ def generate_primary_fits_header_from_database(
         SELECT %s from %s where primaryId = %s
     """ % (",".join(mysqlKeywords), dbTable, primaryId)
     log.debug('sqlQuery: %s' % (sqlQuery,))
-    fileMeta = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    fileMeta = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     fileMeta = fileMeta[0]
-    for k, v in fileMeta.items():
+    for k, v in list(fileMeta.items()):
         if "HIERARCH" not in k and isinstance(v, ("".__class__, u"".__class__)) and len(v) > 68:
             fileMeta[k] = v[0:68]
         if isinstance(v, datetime.datetime):
             if k == "DATE_OBS":
-                fileMeta[k] = dat.getDateFromMJD(
-                    fileMeta["MJD_OBS"]
+                utDate = converter.mjd_to_ut_datetime(
+                    mjd=fileMeta["MJD_OBS"],
+                    sqlDate=True,
+                    datetimeObject=False
                 )
             fileMeta[k] = str(v).replace(" ", "T")
         elif v == "T":
@@ -148,37 +162,37 @@ def generate_primary_fits_header_from_database(
     for m, f, c in zip(mysqlKeywords, fitsKeywords, fitsComments):
         index += 1
         if m == "RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
-                delimiter=':'
+                delimiter=":"
             )
             fitsComments[index] = raSex + " RA (J2000) pointing (deg)"
         elif m == "DECL" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
-                delimiter=':'
+                delimiter=":"
             )
             fitsComments[index] = decSex + " DEC (J2000) pointing (deg)"
         elif m == "ESO_ADA_GUID_RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " Guide Star RA J2000"
         elif m == "ESO_ADA_GUID_DEC" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = decSex + " Guide Star DEC J2000"
         elif m == "ESO_TEL_MOON_RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " RA (J2000) (deg)"
         elif m == "ESO_TEL_MOON_DEC" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
@@ -206,7 +220,6 @@ def generate_primary_fits_header_from_database(
         'completed the ``generate_primary_fits_header_from_database`` function')
     return fitsHeader
 
-
 # LAST MODIFIED : April 9, 2013
 # CREATED : April 9, 2013
 # AUTHOR : DRYX
@@ -214,26 +227,33 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     """
     *Given the primary header from the final NTT Pipeline reduced spectrum, build the extension header needed for the ESO Phase III ready spectrum bintable.*
 
-    **Key Arguments:**
-        - ``log`` -- logger
-        - ``dbConn`` -- mysql database connection
-        - ``pixelCount`` -- number of pixels in the 1D image
-        - ``primaryId`` -- the primaryId of the row in the database table refering to this file (1d spectrum FITS file)
-        - ``instrument`` -- sofi or efosc
-        - ``oneDSpectrumPath`` -- path to the associated 1D spectrum file
+    **Key Arguments**
 
-    **Return:**
-        - ``extensionHeader`` -- the primary header needed for the ESO Phase III ready spectrum bintable.
+    - ``log`` -- logger
+    - ``dbConn`` -- mysql database connection
+    - ``pixelCount`` -- number of pixels in the 1D image
+    - ``primaryId`` -- the primaryId of the row in the database table refering to this file (1d spectrum FITS file)
+    - ``instrument`` -- sofi or efosc
+    - ``oneDSpectrumPath`` -- path to the associated 1D spectrum file
+    
+
+    **Return**
+
+    - ``extensionHeader`` -- the primary header needed for the ESO Phase III ready spectrum bintable.
+    
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import datetime
     ## THIRD PARTY ##
     import pyfits as pf
     import numpy as np
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
-    import dryxPython.astrotools as dat
+    from fundamentals.mysql import readquery, writequery
+
+    # CONVERTER TO CONVERT MJD TO DATE
+    converter = conversions(
+        log=log
+    )
 
     ################ > VARIABLE SETTINGS ######
     oneDHduList = pf.open(oneDSpectrumPath)
@@ -247,10 +267,10 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     sqlQuery = """
         SELECT mysql_keyword, fits_keyword, fits_comment from fits_header_keywords where %s = 1
     """ % (thisTable,)
-    cardSyntax = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    cardSyntax = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
     mysqlKeywords = []
     fitsKeywords = []
@@ -265,20 +285,20 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
         SELECT %s from %s where %s = %s
     """ % (",".join(mysqlKeywords), dbTable, primaryIdKey, primaryId)
 
-    fileMeta = dms.execute_mysql_read_query(
-        sqlQuery,
-        dbConn,
-        log
+    fileMeta = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
     )
 
     log.debug('sqlQuery to get metadata for binaryTable: %s' % (sqlQuery,))
 
     fileMeta = fileMeta[0]
-    for k, v in fileMeta.items():
+    for k, v in list(fileMeta.items()):
         if isinstance(v, datetime.datetime):
             if k == "DATE_OBS":
-                fileMeta[k] = dat.getDateFromMJD(
-                    fileMeta["MJD_OBS"]
+                fileMeta[k] = converter.mjd_to_ut_datetime(
+                    mjd=fileMeta[m]
                 )
             fileMeta[k] = str(v).replace(" ", "T")
         if v == "T":
@@ -297,37 +317,37 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     for m, f, c in zip(mysqlKeywords, fitsKeywords, fitsComments):
         index += 1
         if m == "RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " RA (J2000) pointing (deg)"
         elif m == "DECL" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = decSex + " DEC (J2000) pointing (deg)"
         elif m == "ESO_ADA_GUID_RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " Guide Star RA J2000"
         elif m == "ESO_ADA_GUID_DEC" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = decSex + " Guide Star DEC J2000"
         elif m == "ESO_TEL_MOON_RA" and fileMeta[m]:
-            raSex = dat.ra_to_sex(
+            raSex = unit_converter.ra_decimal_to_sexegesimal(
                 ra=fileMeta[m],
                 delimiter=':'
             )
             fitsComments[index] = raSex + " RA (J2000) (deg)"
         elif m == "ESO_TEL_MOON_DEC" and fileMeta[m]:
-            decSex = dat.dec_to_sex(
+            decSex = unit_converter.dec_decimal_to_sexegesimal(
                 dec=fileMeta[m],
                 delimiter=':'
             )
@@ -381,7 +401,6 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
 
     return extensionHeader
 
-
 # LAST MODIFIED : September 9, 2013
 # CREATED : September 9, 2013
 # AUTHOR : DRYX
@@ -397,29 +416,30 @@ def rewrite_fits_file(
 
     *rewrite fits file given the path to the fits file and the new header*
 
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-        - ``instrument`` -- efosc or sofi
-        - ``primaryId`` -- the primaryId of the file in the db table
-        - ``pathToFitsFile`` -- path to the fits file to rewrite
-        - ``fitsHeader`` -- the primary header to write into the fits file
-        - ``binaryTable`` -- if binary table generate data and 2 headers
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``dbConn`` -- mysql database connection
+    - ``log`` -- logger
+    - ``instrument`` -- efosc or sofi
+    - ``primaryId`` -- the primaryId of the file in the db table
+    - ``pathToFitsFile`` -- path to the fits file to rewrite
+    - ``fitsHeader`` -- the primary header to write into the fits file
+    - ``binaryTable`` -- if binary table generate data and 2 headers
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
-
-
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import os
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
     import pyfits as pf
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     log.debug('starting the ``rewrite_fits_file`` function')
     # TEST THE ARGUMENTS
@@ -431,10 +451,10 @@ def rewrite_fits_file(
         sqlQuery = """
             select primaryId, archivePath, currentFilepath, flux_scaling_factor from %s where primaryId = (select binary_table_associated_spectrum_id from %s where primaryId = %s);
         """ % (dbTable, dbTable, primaryId,)
-        oneDSpectrumQuery = dms.execute_mysql_read_query(
-            sqlQuery,
-            dbConn,
-            log
+        oneDSpectrumQuery = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn
         )
 
         log.debug(
@@ -487,7 +507,6 @@ def rewrite_fits_file(
     log.debug('completed the ``rewrite_fits_file`` function')
     return None
 
-
 # LAST MODIFIED : September 9, 2013
 # CREATED : April 9, 2013
 # AUTHOR : DRYX
@@ -495,14 +514,17 @@ def build_bintable_data(log, pathToFitsFile):
     """
     *Build the binary table data extensions of the final reduced spectrum*
 
-    **Key Arguments:**
-        - ``log`` -- logger
-        - ``pathToFitsFile`` -- path to the final NTT Pipeline reduced spectrum.
+    **Key Arguments**
 
-    **Return:**
-        - ``binTableHdu`` -- the binary table HDU
+    - ``log`` -- logger
+    - ``pathToFitsFile`` -- path to the final NTT Pipeline reduced spectrum.
+    
+
+    **Return**
+
+    - ``binTableHdu`` -- the binary table HDU
+    
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     import numpy as np
@@ -546,7 +568,7 @@ def build_bintable_data(log, pathToFitsFile):
     maxWave = primCardList['WAVELMAX'].value * 10.
     rangeWave = maxWave - minWave
     pixelGaps = len(fluxData[0]) - 1
-    delPixel = rangeWave / pixelGaps
+    delPixel = old_div(rangeWave, pixelGaps)
     fluxError = primCardList['SPEC_ERR'].value
 
     wlArray = []
@@ -601,7 +623,6 @@ def build_bintable_data(log, pathToFitsFile):
 
 if __name__ == '__main__':
     main()
-
 
 ###################################################################
 # TEMPLATE FUNCTIONS                                              #

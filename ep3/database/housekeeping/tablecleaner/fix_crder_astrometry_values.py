@@ -6,9 +6,6 @@
 :Author:
     David Young
 
-:Date Created:
-    November 29, 2013
-
 Usage:
     pm_fix_crder_astrometry_values -s <pathToSettingsFile>
 
@@ -16,19 +13,16 @@ Options:
     -h, --help          show this help message
     -s, --settingsFile  path to the settings file
 """
-################# GLOBAL IMPORTS ####################
+from __future__ import division
+from past.utils import old_div
 import sys
 import os
 from docopt import docopt
-from dryxPython import logs as dl
-from dryxPython import commonutils as dcu
-
 
 def main(arguments=None):
     """
     *The main function used when ``fix_crder_astrometry_values.py`` is run as a single script from the cl, or when installed as a cl command*
     """
-    ########## IMPORTS ##########
     ## STANDARD LIB ##
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
@@ -44,12 +38,12 @@ def main(arguments=None):
 
     # unpack remaining cl arguments using `exec` to setup the variable names
     # automatically
-    for arg, val in arguments.items():
+    for arg, val in list(arguments.items()):
         if arg[0] == "-":
             varname = arg.replace("-", "") + "Flag"
         else:
             varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)) :
+        if isinstance(val, ("".__class__, u"".__class__)):
             exec(varname + " = '%s'" % (val,))
         else:
             exec(varname + " = %s" % (val,))
@@ -92,7 +86,6 @@ def main(arguments=None):
 # CREATED : November 29, 2013
 # AUTHOR : DRYX
 
-
 def fix_crder_astrometry_values(
     log,
     dbConn,
@@ -100,24 +93,27 @@ def fix_crder_astrometry_values(
     """
     *fix_crder_astrometry_values*
 
-    **Key Arguments:**
-        - ``log`` -- the logger
-        - ``dbConn`` -- the database connection
+    **Key Arguments**
 
-    **Return:**
-        - None
+    - ``log`` -- the logger
+    - ``dbConn`` -- the database connection
+    
+
+    **Return**
+
+    - None
+    
 
     .. todo::
 
         @review: when complete, clean worker function and add comments
         @review: when complete add logging
     """
-    ################ > IMPORTS ################
     ## STANDARD LIB ##
     import re
     ## THIRD PARTY ##
     ## LOCAL APPLICATION ##
-    import dryxPython.mysql as dms
+    from fundamentals.mysql import readquery, writequery
 
     tables = ["efosc_imaging", "sofi_imaging"]
 
@@ -126,10 +122,10 @@ def fix_crder_astrometry_values(
         sqlQuery = """
             select primaryId, ASTROMET from %s where ASTROMET is not null and astromet_rmsx is null;
         """ % (table,)
-        rows = dms.execute_mysql_read_query(
+        rows = readquery(
+            log=log,
             sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            log=log
+            dbConn=dbConn
         )
 
         for row in rows:
@@ -140,8 +136,8 @@ def fix_crder_astrometry_values(
             rmsy = float(splitList[1])
             sources = int(splitList[2])
             astromet_error = (rmsx ** 2 + rmsy ** 2) ** 0.5
-            crder1 = rmsx / 3600.
-            crder2 = rmsy / 3600.
+            crder1 = old_div(rmsx, 3600.)
+            crder2 = old_div(rmsy, 3600.)
 
             if rmsx > 100:
                 rmsx = 999
@@ -153,10 +149,10 @@ def fix_crder_astrometry_values(
             sqlQuery = """
                 update %s set astromet_rmsx = %s, astromet_rmsy = %s, astromet_sources = %s, astromet_error_arcsec = %s, crder1 = %s, crder2 = %s where primaryId = %s
             """ % (table, rmsx, rmsy, sources, astromet_error, crder1, crder2, row["primaryId"])
-            dms.execute_mysql_write_query(
+            writequery(
+                log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn,
-                log=log
             )
 
             log.debug('splitList: %s' % (splitList,))
