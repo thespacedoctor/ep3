@@ -9,8 +9,8 @@
 
 <!-- STATUS BADGES -->  
 
-[![](http://167.71.135.11:8080/buildStatus/icon?job=ep3%2Fmaster&subject=build%20master)](http://167.71.135.11:8080/blue/organizations/jenkins/ep3/activity?branch=master)  
-[![](http://167.71.135.11:8080/buildStatus/icon?job=ep3%2Fdevelop&subject=build%20dev)](http://167.71.135.11:8080/blue/organizations/jenkins/ep3/activity?branch=develop)  
+[![](http://157.245.42.153:8080/buildStatus/icon?job=ep3%2Fmaster&subject=build%20master)](http://157.245.42.153:8080/blue/organizations/jenkins/ep3/activity?branch=master)  
+[![](http://157.245.42.153:8080/buildStatus/icon?job=ep3%2Fdevelop&subject=build%20dev)](http://157.245.42.153:8080/blue/organizations/jenkins/ep3/activity?branch=develop)  
 [![](https://cdn.jsdelivr.net/gh/thespacedoctor/ep3@master/coverage.svg)](https://raw.githack.com/thespacedoctor/ep3/master/htmlcov/index.html)  
 [![](https://readthedocs.org/projects/ep3/badge/?version=master)](https://ep3.readthedocs.io/en/master/)  
 [![](https://img.shields.io/github/issues/thespacedoctor/ep3/type:%20bug?label=bug%20issues)](https://github.com/thespacedoctor/ep3/issues?q=is%3Aissue+is%3Aopen+label%3A%22type%3A+bug%22+)  
