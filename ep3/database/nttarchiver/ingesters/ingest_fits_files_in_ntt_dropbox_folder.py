@@ -26,6 +26,7 @@ import sys
 import os
 from docopt import docopt
 
+
 def main(arguments=None):
     """
     *The main function used when ``ingest_fits_files_in_ntt_dropbox_folder.py`` is run as a single script from the cl, or when installed as a cl command*
@@ -105,6 +106,7 @@ def main(arguments=None):
 # CREATED : October 28, 2013
 # AUTHOR : DRYX
 
+
 def ingest_fits_files_in_ntt_dropbox_folder(
         dbConn,
         log,
@@ -119,12 +121,12 @@ def ingest_fits_files_in_ntt_dropbox_folder(
     - ``log`` -- logger
     - ``pathToDropboxRoot`` -- path to the root directory from which to recusively ingest fits files
     - ``pathToArchiveRoot`` -- path to the root of the archive
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
 
@@ -179,6 +181,7 @@ def ingest_fits_files_in_ntt_dropbox_folder(
 # CREATED : August 19, 2013
 # AUTHOR : DRYX
 
+
 def _ingest_fits_file(
         log,
         dbConn,
@@ -195,12 +198,12 @@ def _ingest_fits_file(
     - ``pathToFitsFile`` -- the path to the fits file we wish to ingest
     - ``pathToArchiveRoot`` -- path to the root of the archive
     - ``pathToDropboxRoot`` -- path to the root directory from which to recusively ingest fits files
-    
+
 
     **Return**
 
     - ``None``
-    
+
 
     .. todo::
 
@@ -313,57 +316,51 @@ def _ingest_fits_file(
         log.critical(message)
         raise IOError(message)
 
-    # MASK FILES HAVE MOSY HEADER DETAILS IN EXTENSION 1
-    headerExtension = 0
+    # # MASK FILES HAVE MOSY HEADER DETAILS IN EXTENSION 1
+    # headerExtension = 0
 
-    if "mask" in basename[:4]:
-        headerExtension = 1
+    # if "mask" in basename[:4]:
+    #     headerExtension = 1
 
-    if "_sb.fits" in basename:
-        headerExtension = 1
+    # if "_sb.fits" in basename:
+    #     headerExtension = 1
 
-    # if basename == "mask.fits":
-    #     log.debug('ignoring mask.fits file at: %s' % (pathToFitsFile,))
-    #     return None
+    # # FITS HEADER DICT HAS [VALUE, COMMENT] AS DICT VALUE
+    # fitsFileHeaderDictionary = dft.convert_fits_header_to_dictionary(
+    #     log=log,
+    #     pathToFitsFile=pathToFitsFile,
+    #     headerExtension=headerExtension
+    # )
 
-    fitsFileHeaderDictionary = dft.convert_fits_header_to_dictionary(
-        log=log,
-        pathToFitsFile=pathToFitsFile,
-        headerExtension=headerExtension
-    )
+    # #log.debug('fitsFileHeaderDictionary: %s' % (fitsFileHeaderDictionary,))
+    # fitsFileHeaderDictionary["filename"] = [
+    #     str(os.path.basename(pathToFitsFile)), "filename"]
+    # fitsFileHeaderDictionary["filePath"] = [
+    #     str(os.path.abspath(pathToFitsFile)), "the path to the file"]
+    # fitsFileHeaderDictionary["headerExtension"] = [
+    #     headerExtension, "the fits header extension that was ingested"]
 
-    #log.debug('fitsFileHeaderDictionary: %s' % (fitsFileHeaderDictionary,))
-    fitsFileHeaderDictionary["filename"] = [
-        str(os.path.basename(pathToFitsFile)), "filename"]
-    fitsFileHeaderDictionary["filePath"] = [
-        str(os.path.abspath(pathToFitsFile)), "the path to the file"]
-    fitsFileHeaderDictionary["headerExtension"] = [
-        headerExtension, "the fits header extension that was ingested"]
+    # # CONVERT BOOLEAN TO STRING
+    # dictCopy = fitsFileHeaderDictionary
+    # for k, v in list(fitsFileHeaderDictionary.items()):
+    #     if isinstance(v[0], bool):
+    #         if v[0]:
+    #             dictCopy[k] = ["T", v[1]]
+    #         else:
+    #             dictCopy[k] = ["F", v[1]]
 
-    # CONVERT BOOLEAN TO STRING
-    dictCopy = fitsFileHeaderDictionary
-    for k, v in list(fitsFileHeaderDictionary.items()):
-        if isinstance(v[0], bool):
-            if v[0]:
-                dictCopy[k] = ["T", v[1]]
-            else:
-                dictCopy[k] = ["F", v[1]]
+    #     if k == "RELEASE":
+    #         dictCopy["RRELEASE"] = [v[0], v[1]]
+    #         del dictCopy[k]
 
-        if k == "RELEASE":
-            dictCopy["RRELEASE"] = [v[0], v[1]]
-            del dictCopy[k]
+    # fitsFileHeaderDictionary = dictCopy
 
-    fitsFileHeaderDictionary = dictCopy
-
-    # SOME EDGE CASE FIXES
-    if "________________OG530_/ADA_GUID_DEC".replace("_", " ") in fitsFileHeaderDictionary:
-        fitsFileHeaderDictionary["ESO_ADA_GUID_DEC"] = fitsFileHeaderDictionary[
-            "________________OG530_/ADA_GUID_DEC".replace("_", " ")]
-        del fitsFileHeaderDictionary[
-            "________________OG530_/ADA_GUID_DEC".replace("_", " ")]
-
-    # if "QUALITY" not in list(fitsFileHeaderDictionary.keys()):
-    #     fitsFileHeaderDictionary["QUALITY"] = [None, None]
+    # # SOME EDGE CASE FIXES
+    # if "________________OG530_/ADA_GUID_DEC".replace("_", " ") in fitsFileHeaderDictionary:
+    #     fitsFileHeaderDictionary["ESO_ADA_GUID_DEC"] = fitsFileHeaderDictionary[
+    #         "________________OG530_/ADA_GUID_DEC".replace("_", " ")]
+    #     del fitsFileHeaderDictionary[
+    #         "________________OG530_/ADA_GUID_DEC".replace("_", " ")]
 
     mysqlTableName = _get_fits_file_type(
         log=log,
@@ -397,6 +394,7 @@ def _ingest_fits_file(
 # CREATED : August 26, 2013
 # AUTHOR : DRYX
 
+
 def _get_fits_file_type(
         log,
         fitsFileHeaderDictionary):
@@ -407,12 +405,12 @@ def _get_fits_file_type(
 
     - ``log`` -- logger
     - ``fitsFileHeaderDictionary`` -- the python version of the fits file header
-    
+
 
     **Return**
 
     - ``mysqlTableName`` -- the name of the mysql table to ingest the fits file info into
-    
+
 
     .. todo::
 

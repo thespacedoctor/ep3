@@ -4,6 +4,7 @@ import os
 moduleDirectory = os.path.dirname(os.path.realpath(__file__))
 exec(open(moduleDirectory + "/ep3/__version__.py").read())
 
+
 def readme():
     with open(moduleDirectory + '/README.md') as f:
         return f.read()
@@ -13,7 +14,8 @@ install_requires = [
     'ep3',
     'fundamentals',
     'numpy',
-    'astrocalc'
+    'astrocalc',
+    'astropy'
 ]
 
 # READ THE DOCS SERVERS
