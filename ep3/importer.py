@@ -15,9 +15,7 @@ import os
 os.environ['TERM'] = 'vt100'
 from fundamentals import tools
 from astropy.io import fits
-
-# OR YOU CAN REMOVE THE CLASS BELOW AND ADD A WORKER FUNCTION ... SNIPPET TRIGGER BELOW
-# xt-worker-def
+from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
 
 
 class importer(object):
@@ -37,251 +35,234 @@ class importer(object):
     ```eval_rst
     .. todo::
 
-        - add usage info
-        - create a sublime snippet for usage
         - create cl-util for this class
         - add a tutorial about ``importer`` to documentation
-        - create a blog post about what ``importer`` does
     ```
 
     ```python
-    usage code
+    from ep3 import importer
+    ingester = importer(
+        log=log,
+        settings=settings
+    )
+    ingester.ingest()
     ```
 
     """
-    # Initialisation
-    # 1. @flagged: what are the unique attrributes for each object? Add them
-    # to __init__
 
     def __init__(
             self,
             log,
-            settings=False,
-
+            settings=False
     ):
         self.log = log
         log.debug("instansiating a new 'importer' object")
         self.settings = settings
         # xt-self-arg-tmpx
 
-        # 2. @flagged: what are the default attrributes each object could have? Add them to variable attribute set here
-        # Variable Data Atrributes
-
-        # 3. @flagged: what variable attrributes need overriden in any baseclass(es) used
-        # Override Variable Data Atrributes
-
-        # Initial Actions
+        # SETUP ALL DATABASE CONNECTIONS
+        from fundamentals.mysql import database
+        self.dbConn = database(
+            log=self.log,
+            dbSettings=settings["database settings"]
+        ).connect()
 
         return None
 
-    # 4. @flagged: what actions does each object have to be able to perform? Add them here
-    # Method Attributes
-    def get(self):
+    def ingest(self):
         """
-        *get the importer object*
-
-        **Return:**
-            - ``importer``
+        *ingest fits headers into the database and files in the phase III archive*
 
         **Usage:**
 
         ```eval_rst
         .. todo::
 
-            - add usage info
-            - create a sublime snippet for usage
             - create cl-util for this method
-            - update the package tutorial if needed
         ```
 
         ```python
-        usage code
+        from ep3 import importer
+        ingester = importer(
+            log=log,
+            settings=settings
+        )
+        ingester.ingest()
         ```
         """
-        self.log.debug('starting the ``get`` method')
+        self.log.debug('starting the ``ingest`` method')
 
-        importer = None
+        efoscSpectra, sofiSpectra, efoscImages, sofiImages = self.filter_directory_of_fits_frame(
+            batchSize=2000
+        )
 
-        self.log.debug('completed the ``get`` method')
-        return importer
+        for l, t in zip([efoscSpectra, sofiSpectra, efoscImages, sofiImages], ['efosc_spectra', 'sofi_spectra', 'efosc_imaging', 'sofi_imaging']):
+            if not l:
+                continue
+            listOfDictionaries = []
+            listOfDictionaries[:] = [self.header_to_dict(h, f)
+                                     for h, f in zip(l.headers(), l.files_filtered(include_path=True))]
 
-    def import_single_frame(
+            # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF
+            # DICTIONARIES INTO DATABASE
+            insert_list_of_dictionaries_into_database_tables(
+                dbConn=self.dbConn,
+                log=self.log,
+                dictList=listOfDictionaries,
+                dbTableName=t,
+                uniqueKeyList=["filename"],
+                dateModified=True,
+                dateCreated=True,
+                batchSize=2500,
+                replace=True,
+                dbSettings=self.settings["database settings"]
+            )
+
+        self.log.debug('completed the ``ingest`` method')
+        return None
+
+    def filter_directory_of_fits_frame(
             self,
-            pathToFitsFile):
-        """*import a single fits frame into the database and nested folder archive*
+            batchSize=False):
+        """*read in the fits files from a directory and filter them into their types, returning a dictionary of types and lists of fits files matching those types*
 
         **Key Arguments:**
-            - ``pathToFitsFile`` -- the path to the fits file we wish to ingest
-            - ``pathToArchiveRoot`` -- path to the root of the archive
+            - ``batchSize`` -- limit the number of fits files to filter. Default **False**
 
         **Return:**
-            - None
+            - ` efoscSpectra`, `sofiSpectra`, `efoscImages`, `sofiImages` -- filter imageFileCollections
 
         **Usage:**
 
         ```python
-        usage code
-        ```
-
-        ---
-
-        ```eval_rst
-        .. todo::
-
-            - add usage info
-            - create a sublime snippet for usage
-            - write a command-line tool for this method
-            - update package tutorial with command-line tool info if needed
+        efoscSpectra, sofiSpectra, efoscImages, sofiImages = ingester.filter_directory_of_fits_frame(
+            batchSize=50
+        )
         ```
         """
-        self.log.debug('starting the ``import_single_frame`` method')
+        self.log.debug(
+            'starting the ``filter_directory_of_fits_frame`` method')
 
-        # DECIDE WHICH EXTENSION WE NEED
-        basename = os.path.basename(pathToFitsFile)
-        if "mask" in basename[:4] or "_sb.fits" in basename:
-            headerExtension = 1
+        # GENERATE A LIST OF FITS FILE PATHS
+        fitsPaths = []
+        pathToDirectory = self.settings["dropbox"]
+        for d in os.listdir(pathToDirectory):
+            filepath = os.path.join(pathToDirectory, d)
+            if os.path.isfile(filepath) and os.path.splitext(filepath)[1] == ".fits":
+                fitsPaths.append(filepath)
+
+        # LIMIT TO BATCHSIZE
+        if batchSize:
+            fitsPaths = fitsPaths[:batchSize]
+
+        # GENERATE THE IMAGECOLLECTION
+        from ccdproc import ImageFileCollection
+        keys = ['INSTRUME', 'ESO DPR CATG', 'ESO DPR TYPE', 'ESO DPR TECH', 'ESO TPL NAME',
+                'OBSTECH', 'ESO INS GRIS1 NAME', 'BITPIX']
+        collection = ImageFileCollection(
+            location=pathToDirectory, filenames=fitsPaths, keywords=keys)
+
+        # EFOSC SPECTRA
+        matches = (collection.summary['INSTRUME'] == "EFOSC") & (
+            (collection.summary['ESO DPR TECH'] == 'SPECTRUM') |
+            (collection.summary['OBSTECH'] == 'SPECTRUM')) & (collection.summary['BITPIX'] != 8)
+        efoscSpectra = collection.summary['file'][matches]
+        files = []
+        files[:] = [f for f in efoscSpectra]
+        if len(files):
+            efoscSpectra = ImageFileCollection(
+                location=pathToDirectory, filenames=files, keywords=keys)
         else:
-            headerExtension = 0
+            efoscSpectra = None
 
-        # OPEN FITS FILE & GRAB FITS HEADER
-        hdulist = fits.open(pathToFitsFile)
-        hdr = hdulist[0].header
+        # SOFI SPECTRA
+        matches = (collection.summary['INSTRUME'] == "SOFI") & (
+            (collection.summary['ESO DPR TECH'] == 'SPECTRUM') |
+            (collection.summary['OBSTECH'] == 'SPECTRUM')) & (collection.summary['BITPIX'] != 8)
+        sofiSpectra = collection.summary['file'][matches]
+        files = []
+        files[:] = [f for f in sofiSpectra]
+        if len(files):
+            sofiSpectra = ImageFileCollection(
+                location=pathToDirectory, filenames=files, keywords=keys)
+        else:
+            sofiSpectra = None
 
-        # ADD EXTRA INFO TO THE DICTIONARY
-        hdr["filename"] = (basename, "filename")
-        hdr["filePath"] = (
-            str(os.path.abspath(pathToFitsFile)), "the path to the file")
-        hdr["headerExtension"] = (
-            headerExtension, "the fits header extension that was ingested")
+        # EFOSC IMAGES
+        matches = (collection.summary['INSTRUME'] == "EFOSC") & (
+            (collection.summary['ESO DPR TECH'] == 'IMAGE') |
+            (collection.summary['OBSTECH'] == 'IMAGE'))
+        efoscImages = collection.summary['file'][matches]
+        files = []
+        files[:] = [f for f in efoscImages]
+        if len(files):
+            efoscImages = ImageFileCollection(
+                location=pathToDirectory, filenames=files, keywords=keys)
+        else:
+            efoscImages = None
 
-        # CONVERT BOOLEAN ENTRIES TO STRINGS
-        dictCopy = hdr
-        print(repr(hdr))
-        for k, v in list(hdr.items()):
+        # SOFI IMAGES
+        matches = (collection.summary['INSTRUME'] == "SOFI") & (
+            (collection.summary['ESO DPR TECH'] == 'IMAGE') |
+            (collection.summary['OBSTECH'] == 'IMAGE'))
+        sofiImages = collection.summary['file'][matches]
+        files = []
+        files[:] = [f for f in sofiImages]
+        if len(files):
+            sofiImages = ImageFileCollection(
+                location=pathToDirectory, filenames=files, keywords=keys)
+        else:
+            sofiImages = None
+
+        self.log.debug(
+            'completed the ``filter_directory_of_fits_frame`` method')
+        return efoscSpectra, sofiSpectra, efoscImages, sofiImages
+
+    def header_to_dict(
+            self,
+            header,
+            fitsPath):
+        """*convert the header of the fits frame to a dictionary*
+
+        **Key Arguments:**
+            - `header` -- the fits header
+            - `fitsPath` -- path to the fits frame
+
+        **Return:**
+            - ``fitsDict`` -- the fits header as a dictionary
+
+        **Usage:**
+
+        ```python
+        fitsDict = importer.header_to_dict(header, fitsPath)
+        ```
+        """
+        self.log.debug('starting the ``header_to_dict`` method')
+
+        fitsDict = {
+            'filePath': fitsPath,
+            'filename': os.path.basename(fitsPath),
+            'headerExtension': 0
+        }
+        for k, v in header.items():
+            if not len(k):
+                continue
             if type(v) == bool:
                 if v is True:
-                    dictCopy[k] = "T"
+                    v = "T"
                 else:
-                    dictCopy[k] = "F"
+                    v = "F"
             if k == "RELEASE":
-                dictCopy["RRELEASE"] = v
-                del dictCopy[k]
-        hdr = dictCopy
+                k = 'RRELEASE'
+            if k == "DEC":
+                k = "DECL"
+            if k == "________________OG530_/ADA_GUID_DEC".replace("_", " "):
+                k = "ESO_ADA_GUID_DEC"
+            k = k.strip().replace(" ", "_").replace("-", "_")
+            fitsDict[k] = v
 
-        # FIX EDGE-CASE CRAP
-        if "________________OG530_/ADA_GUID_DEC".replace("_", " ") in hdr:
-            hdr["ESO_ADA_GUID_DEC"] = hdr[
-                "________________OG530_/ADA_GUID_DEC".replace("_", " ")]
-            del hdr[
-                "________________OG530_/ADA_GUID_DEC".replace("_", " ")]
-
-        # DETERMINE FITS TYPE
-        mysqlTableName = self.fitstype(hdr=hdr)
-        print(mysqlTableName)
-
-        # ADD ROW TO DATABASE
-
-        # SEND FILE TO NESTED FOLDERS
-
-        self.log.debug('completed the ``import_single_frame`` method')
-        return None
-
-    # use the tab-trigger below for new method
-    def fitstype(
-            self,
-            hdr):
-        """*determine the type of fits file - which MySQL table to add it it*
-
-        **Key Arguments:**
-            - ``hdr`` -- the fitsheader
-
-        **Return:**
-            - ``mysqlTableName`` -- the MySQL table to add the details to
-
-        **Usage:**
-
-        ```python
-        usage code 
-        ```
-
-        ---
-
-        ```eval_rst
-        .. todo::
-
-            - add usage info
-            - create a sublime snippet for usage
-            - write a command-line tool for this method
-            - update package tutorial with command-line tool info if needed
-        ```
-        """
-        self.log.debug('starting the ``fitstype`` method')
-
-        ## VARIABLES ##
-        instrument = ""
-        mode = 0
-
-        if "corrupted" in hdr:
-            mysqlTableName = "corrupted_files"
-        elif "sens_merge" in hdr["filename"]:
-            mysqlTableName = "corrupted_files"
-        elif "_sb.fits" in hdr["filename"] and "merge" in hdr["filename"]:
-            mysqlTableName = "sofi_spectra_binary_table_extension"
-        elif "_sb.fits" in hdr["filename"]:
-            mysqlTableName = "efosc_spectra_binary_table_extension"
-        else:
-
-            if "INSTRUME" not in hdr:
-                message = ""
-                for k, v in list(hdr.items()):
-                    message += "%s: %s\n" % (k, v)
-                message += '"INSTRUME" keyword missing or blank for file %s[%s]' % (
-                    hdr['filePath'], hdr['headerExtension'],)
-                self.log.critical(message)
-                raise ValueError(message)
-
-            if hdr["INSTRUME"].lower() == "efosc":
-                instrument = "efosc"
-            elif hdr["INSTRUME"].lower() == "sofi":
-                instrument = "sofi"
-            else:
-                message = '"INSTRUME" keyword missing or blank'
-                self.log.critical(message)
-                raise ValueError(message)
-
-            if "ESO TPL NAME" in list(hdr.keys()):
-                if "spectr" in hdr["ESO TPL NAME"].lower():
-                    mode = "spectra"
-                elif "image" in hdr["ESO TPL NAME"].lower():
-                    mode = "imaging"
-            if mode == 0 and "ESO DPR TECH" in list(hdr.keys()):
-                if "spectr" in hdr["ESO DPR TECH"].lower():
-                    mode = "spectra"
-                elif "image" in hdr["ESO DPR TECH"].lower():
-                    mode = "imaging"
-            if mode == 0 and "OBSTECH" in list(hdr.keys()):
-                if "spectr" in hdr["OBSTECH"].lower():
-                    mode = "spectra"
-                elif "image" in hdr["OBSTECH"].lower():
-                    mode = "imaging"
-            elif mode == 0 and "ESO INS GRIS1 NAME" in list(hdr.keys()):
-                if "foc_wedge" in hdr["ESO INS GRIS1 NAME"].lower():
-                    mode = "imaging"
-
-            if mode == 0:
-                message = '"ESO DPR TECH" and "ESO TPL NAME" and "OBSTECH" missing or incorrect for file %s, mode set to "%s"' % (
-                    hdr["filePath"], mode)
-                self.log.critical(message)
-                raise ValueError(message)
-
-            mysqlTableName = """%s_%s""" % (instrument, mode)
-
-        self.log.debug('completed the ``fitstype`` method')
-        return mysqlTableName
+        self.log.debug('completed the ``header_to_dict`` method')
+        return fitsDict
 
     # use the tab-trigger below for new method
     # xt-class-method
-
-    # 5. @flagged: what actions of the base class(es) need ammending? ammend them here
-    # Override Method Attributes
-    # method-override-tmpx

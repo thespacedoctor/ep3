@@ -30,6 +30,8 @@ moduleDirectory = os.path.dirname(__file__)
 pathToInputDir = moduleDirectory + "/input/"
 pathToOutputDir = moduleDirectory + "/output/"
 
+settings["dropbox"] = f"{pathToOutputDir}/dropbox"
+
 try:
     shutil.rmtree(pathToOutputDir)
 except:
@@ -43,21 +45,19 @@ if not os.path.exists(pathToOutputDir):
 
 
 # xt-setup-unit-testing-files-and-folders
-# utKit("").refresh_database()
+utKit("").refresh_database()
 
 
 class test_importer(unittest.TestCase):
 
-    def test_importer_function(self):
+    def test_filter_directory_of_fits_frame_function(self):
 
         from ep3 import importer
         ingester = importer(
             log=log,
             settings=settings
         )
-        ingester.import_single_frame(
-            pathToFitsFile=f"{pathToOutputDir}/dropbox/t2MASXJ14044671-2511433_20180307_Gr13_Free_slit1.0_58798_1_f.fits"
-        )
+        ingester.ingest()
 
     def test_importer_function_exception(self):
 

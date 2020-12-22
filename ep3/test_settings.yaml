@@ -7,7 +7,7 @@ database settings:
     password: utpass
  
 
-path to dropbox folder: "/Users/Dave/git_repos/pessto_marshall_engine/pessto_marshall_engine/tests/input/data/marshall_dropbox"
+dropbox: "overwritted/in/unit_test"
 path to archive root folder: "/tmp/marshall_archive"
 ## past number of days to check for new data (keep at a few days in case new data was added or there is a delay getting data into the eso archive)
 download window size: 4

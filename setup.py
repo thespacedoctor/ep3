@@ -15,7 +15,9 @@ install_requires = [
     'fundamentals',
     'numpy',
     'astrocalc',
-    'astropy'
+    'astropy',
+    'ccdproc',
+    'pandas'
 ]
 
 # READ THE DOCS SERVERS
