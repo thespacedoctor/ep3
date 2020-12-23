@@ -50,7 +50,7 @@ utKit("").refresh_database()
 
 class test_importer(unittest.TestCase):
 
-    def test_filter_directory_of_fits_frame_function(self):
+    def test_01_filter_directory_of_fits_frame_function(self):
 
         from ep3 import importer
         ingester = importer(
@@ -58,6 +58,19 @@ class test_importer(unittest.TestCase):
             settings=settings
         )
         ingester.ingest()
+
+    def test_02_select_files_to_archive_function(self):
+
+        from ep3 import importer
+        ingester = importer(
+            log=log,
+            settings=settings
+        )
+        for table in ingester.tables:
+            primaryIds, filePaths, archivePaths = ingester.select_files_to_archive(
+                table)
+            for a in archivePaths:
+                print(a)
 
     def test_importer_function_exception(self):
 

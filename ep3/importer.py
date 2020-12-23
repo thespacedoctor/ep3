@@ -16,6 +16,8 @@ os.environ['TERM'] = 'vt100'
 from fundamentals import tools
 from astropy.io import fits
 from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
+from fundamentals.mysql import writequery
+from fundamentals.mysql import readquery
 
 
 class importer(object):
@@ -67,6 +69,9 @@ class importer(object):
             dbSettings=settings["database settings"]
         ).connect()
 
+        self.tables = ['efosc_imaging', 'sofi_imaging',
+                       'efosc_spectra', 'sofi_spectra']
+
         return None
 
     def ingest(self):
@@ -116,6 +121,18 @@ class importer(object):
                 batchSize=2500,
                 replace=True,
                 dbSettings=self.settings["database settings"]
+            )
+
+        # BOOKKEEPING QUERIES
+        sqlQueries = [
+            "call ep3_set_file_type();",
+            "call ep3_set_archive_path();"
+        ]
+        for sqlQuery in sqlQueries:
+            writequery(
+                log=self.log,
+                sqlQuery=sqlQuery,
+                dbConn=self.dbConn
             )
 
         self.log.debug('completed the ``ingest`` method')
@@ -263,6 +280,51 @@ class importer(object):
 
         self.log.debug('completed the ``header_to_dict`` method')
         return fitsDict
+
+    def select_files_to_archive(
+            self,
+            tableName):
+        """*select files to archive from the requested table*
+
+        **Key Arguments:**
+            - `tableName` -- the name of the database table to lift the data from
+
+        **Return:**
+            - `primaryIds` -- list of the primaryIds of the files from the database
+            - `filePaths` -- list of the current filepaths (same length as `primaryIds`)
+            - `archivePaths` -- list of the destinations directories to send files too (same length as `primaryIds`)
+
+        **Usage:**
+
+        ```python
+        from ep3 import importer
+        ingester = importer(
+            log=log,
+            settings=settings
+        )
+        primaryIds, filePaths, archivePaths = ingester.select_files_to_archive('efosc_spectra')
+        ```
+        """
+        self.log.debug('starting the ``select_files_to_archive`` method')
+
+        sqlQuery = f"""
+            select primaryId, filePath, archivePath from {tableName} where filePath is not null; 
+        """
+        rows = readquery(
+            log=self.log,
+            sqlQuery=sqlQuery,
+            dbConn=self.dbConn
+        )
+
+        primaryIds = []
+        primaryIds[:] = [r["primaryId"] for r in rows]
+        filePaths = []
+        filePaths[:] = [r["filePath"] for r in rows]
+        archivePaths = []
+        archivePaths[:] = [r["archivePath"] for r in rows]
+
+        self.log.debug('completed the ``select_files_to_archive`` method')
+        return primaryIds, filePaths, archivePaths
 
     # use the tab-trigger below for new method
     # xt-class-method
