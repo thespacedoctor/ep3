@@ -5,12 +5,11 @@ Documentation for ep3 can be found here: http://ep3.readthedocs.org
 
 Usage:
     ep3 init
-    ep3 import <nttDataFolder> [-s <pathToSettingsFile>]  
+    ep3 import [-s <pathToSettingsFile>]  
 
 Options:
     init                                   setup the ep3 settings file for the first time
     import                                 import the NTT data into the database (headers) and the archive file-system
-    nttDataFolder                          path to the root folder containing the data to import
 
     -h, --help                             show this help message
     -v, --version                          show version
@@ -26,8 +25,10 @@ from docopt import docopt
 from fundamentals import tools, times
 from subprocess import Popen, PIPE, STDOUT
 
+
 def tab_complete(text, state):
     return (glob.glob(text + '*') + [None])[state]
+
 
 def main(arguments=None):
     """
@@ -113,8 +114,13 @@ def main(arguments=None):
             pass
         return
 
-    if a["import"] and a["nttDataFolder"]:
-        print(a["nttDataFolder"])
+    if a["import"]:
+        from ep3 import importer
+        ingester = importer(
+            log=log,
+            settings=settings
+        )
+        ingester.ingest()
 
     # CALL FUNCTIONS/OBJECTS
 

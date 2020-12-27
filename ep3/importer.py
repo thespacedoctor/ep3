@@ -18,11 +18,13 @@ from astropy.io import fits
 from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
 from fundamentals.mysql import writequery
 from fundamentals.mysql import readquery
+import shutil
+import numpy as np
 
 
 class importer(object):
     """
-    *The worker class for the importer module*
+    *Import the EFOSC and SOFI Fits Frames into the Database and Nested Folder Archive*
 
     **Key Arguments:**
         - ``log`` -- logger
@@ -37,7 +39,6 @@ class importer(object):
     ```eval_rst
     .. todo::
 
-        - create cl-util for this class
         - add a tutorial about ``importer`` to documentation
     ```
 
@@ -80,12 +81,6 @@ class importer(object):
 
         **Usage:**
 
-        ```eval_rst
-        .. todo::
-
-            - create cl-util for this method
-        ```
-
         ```python
         from ep3 import importer
         ingester = importer(
@@ -97,9 +92,20 @@ class importer(object):
         """
         self.log.debug('starting the ``ingest`` method')
 
-        efoscSpectra, sofiSpectra, efoscImages, sofiImages = self.filter_directory_of_fits_frame(
+        # FILTER THE FITS FILES FOUND IN THE DIRECTORY
+        efoscSpectra, sofiSpectra, efoscImages, sofiImages, unmatchedFrames = self.filter_directory_of_fits_frame(
             batchSize=2000
         )
+
+        # MOVE UNMATCHED FRAMES
+        if len(unmatchedFrames):
+            dropbox = self.settings["dropbox"]
+            if not os.path.exists(f'{dropbox}/unmatched_frames'):
+                os.makedirs(f'{dropbox}/unmatched_frames')
+            for f in unmatchedFrames:
+                filename = os.path.basename(f)
+                path = f'{dropbox}/unmatched_frames/{filename}'
+                shutil.move(f, path)
 
         for l, t in zip([efoscSpectra, sofiSpectra, efoscImages, sofiImages], ['efosc_spectra', 'sofi_spectra', 'efosc_imaging', 'sofi_imaging']):
             if not l:
@@ -135,6 +141,34 @@ class importer(object):
                 dbConn=self.dbConn
             )
 
+        # DETERMINE THE FILES THAT NEED ARCHIVED
+        archiveRoot = self.settings["archive-root"]
+        for table in self.tables:
+            primaryIds, filePaths, archivePaths = self.select_files_to_archive(
+                table)
+            uniqueItems = list(set(archivePaths))
+            for path in uniqueItems:
+                # RECURSIVELY CREATE MISSING DIRECTORIES
+                if not os.path.exists(f'{archiveRoot}/{path}'):
+                    os.makedirs(f'{archiveRoot}/{path}')
+            for p, f, a in zip(primaryIds, filePaths, archivePaths):
+                filename = os.path.basename(f)
+                path = f'{archiveRoot}/{a}/{filename}'
+                shutil.move(f, path)
+            # UPDATE THE TABLE
+            if len(primaryIds):
+                strIds = []
+                strIds[:] = [str(s) for s in primaryIds]
+                strIds = ",".join(strIds)
+                sqlQuery = f"""update {table} set filePath = null where primaryId in ({strIds})"""
+                writequery(
+                    log=self.log,
+                    sqlQuery=sqlQuery,
+                    dbConn=self.dbConn
+                )
+            else:
+                print(f"There are no more {table} frames remaining to import into the archive")
+
         self.log.debug('completed the ``ingest`` method')
         return None
 
@@ -152,7 +186,7 @@ class importer(object):
         **Usage:**
 
         ```python
-        efoscSpectra, sofiSpectra, efoscImages, sofiImages = ingester.filter_directory_of_fits_frame(
+        efoscSpectra, sofiSpectra, efoscImages, sofiImages, unmatchedFrames = ingester.filter_directory_of_fits_frame(
             batchSize=50
         )
         ```
@@ -161,6 +195,7 @@ class importer(object):
             'starting the ``filter_directory_of_fits_frame`` method')
 
         # GENERATE A LIST OF FITS FILE PATHS
+        allMatched = []
         fitsPaths = []
         pathToDirectory = self.settings["dropbox"]
         for d in os.listdir(pathToDirectory):
@@ -186,6 +221,7 @@ class importer(object):
         efoscSpectra = collection.summary['file'][matches]
         files = []
         files[:] = [f for f in efoscSpectra]
+        allMatched += files
         if len(files):
             efoscSpectra = ImageFileCollection(
                 location=pathToDirectory, filenames=files, keywords=keys)
@@ -199,6 +235,7 @@ class importer(object):
         sofiSpectra = collection.summary['file'][matches]
         files = []
         files[:] = [f for f in sofiSpectra]
+        allMatched += files
         if len(files):
             sofiSpectra = ImageFileCollection(
                 location=pathToDirectory, filenames=files, keywords=keys)
@@ -212,6 +249,7 @@ class importer(object):
         efoscImages = collection.summary['file'][matches]
         files = []
         files[:] = [f for f in efoscImages]
+        allMatched += files
         if len(files):
             efoscImages = ImageFileCollection(
                 location=pathToDirectory, filenames=files, keywords=keys)
@@ -225,15 +263,19 @@ class importer(object):
         sofiImages = collection.summary['file'][matches]
         files = []
         files[:] = [f for f in sofiImages]
+        allMatched += files
         if len(files):
             sofiImages = ImageFileCollection(
                 location=pathToDirectory, filenames=files, keywords=keys)
         else:
             sofiImages = None
 
+        # FIND UNMATCHED FRAMES
+        unmatchedFrames = list(np.setdiff1d(fitsPaths, allMatched))
+
         self.log.debug(
             'completed the ``filter_directory_of_fits_frame`` method')
-        return efoscSpectra, sofiSpectra, efoscImages, sofiImages
+        return efoscSpectra, sofiSpectra, efoscImages, sofiImages, unmatchedFrames
 
     def header_to_dict(
             self,

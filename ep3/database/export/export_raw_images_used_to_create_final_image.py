@@ -25,6 +25,7 @@ from fundamentals import tools
 from fundamentals.mysql import readquery
 import dryxPython.csvtools as dct
 
+
 def main(arguments=None):
     """
     *The main function used when ``export_raw_images_used_to_create_final_image.py`` is run as a single script from the cl, or when installed as a cl command*
@@ -83,6 +84,8 @@ def main(arguments=None):
 # LAST MODIFIED : May 13, 2014
 # CREATED : May 13, 2014
 # AUTHOR : DRYX
+
+
 def export_raw_images_used_to_create_final_image(
         log,
         dbConn,
@@ -97,12 +100,12 @@ def export_raw_images_used_to_create_final_image(
     - ``log`` -- logger
     - ``pathToExportFolder`` -- export folder
     - ``fileName`` -- name of reduced file
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
     """
@@ -220,6 +223,7 @@ def export_raw_images_used_to_create_final_image(
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
+
 def export_raw_science_images(
         dbConn,
         log,
@@ -233,12 +237,12 @@ def export_raw_science_images(
 
     - ``dbConn`` -- mysql database connection
     - ``log`` -- logger
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
 
@@ -313,6 +317,7 @@ def export_raw_science_images(
 # CREATED : November 10, 2014
 # AUTHOR : DRYX
 
+
 def export_bias_frames(
         dbConn,
         log,
@@ -331,12 +336,12 @@ def export_bias_frames(
     - ``databaseTable`` -- databaseTable
     - ``prov1`` -- prov1
     - ``imagesToExport`` -- imagesToExport
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
     """
@@ -378,7 +383,7 @@ def export_bias_frames(
                 select currentFilepath, currentFilename, ORIGFILE, ESO_TPL_PRESEQ, %(filterKeyword)s , ra, decl, currentFilename, object from %(databaseTable)s  where (currentFilename like "%%%(next)s%%") and (OBJECT = "BIAS") order by origfile;
             """ % locals()
             log.debug("""sqlQuery: `%(sqlQuery)s`""" % locals())
-            newRows rows = readquery(
+            newRows = readquery(
                 log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn
@@ -407,6 +412,8 @@ def export_bias_frames(
 # LAST MODIFIED : November 10, 2014
 # CREATED : November 10, 2014
 # AUTHOR : DRYX
+
+
 def export_flat_field_frames(
         dbConn,
         log,
@@ -427,12 +434,12 @@ def export_flat_field_frames(
     - ``prov1`` -- prov1
     - ``ffilter`` -- ffilter
     - ``imagesToExport`` -- imagesToExport
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
     """
@@ -500,6 +507,7 @@ def export_flat_field_frames(
 # CREATED : November 10, 2014
 # AUTHOR : DRYX
 
+
 def export_arc_frame(
     dbConn,
     log,
@@ -517,12 +525,12 @@ def export_arc_frame(
     - ``fileName`` -- fileName
     - ``databaseTable`` -- databaseTable
     - ``imagesToExport`` -- imagesToExport
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
     """
@@ -558,6 +566,7 @@ def export_arc_frame(
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
 
+
 def export_spec_standards(
         dbConn,
         log,
@@ -573,12 +582,12 @@ def export_spec_standards(
     - ``log`` -- logger
     # copy usage method(s) here and select the following snippet from the command palette:
     # x-setup-docstring-keys-from-selected-usage-options
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
 

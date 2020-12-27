@@ -8,7 +8,7 @@ database settings:
  
 
 dropbox: "overwritted/in/unit_test"
-path to archive root folder: "/tmp/marshall_archive"
+archive-root: "overwritted/in/unit_test"
 ## past number of days to check for new data (keep at a few days in case new data was added or there is a delay getting data into the eso archive)
 download window size: 4
 

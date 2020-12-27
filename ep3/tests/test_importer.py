@@ -31,6 +31,7 @@ pathToInputDir = moduleDirectory + "/input/"
 pathToOutputDir = moduleDirectory + "/output/"
 
 settings["dropbox"] = f"{pathToOutputDir}/dropbox"
+settings["archive-root"] = f"{pathToOutputDir}/archive"
 
 try:
     shutil.rmtree(pathToOutputDir)
