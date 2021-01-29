@@ -48,7 +48,7 @@ class importer(object):
         log=log,
         settings=settings
     )
-    ingester.ingest()
+    remainingFrameCount = ingester.ingest()
     ```
 
     """
@@ -87,15 +87,34 @@ class importer(object):
             log=log,
             settings=settings
         )
-        ingester.ingest()
+        remainingFrameCount = ingester.ingest()
         ```
         """
         self.log.debug('starting the ``ingest`` method')
 
+        # MOVE NON-FITS FILES
+        # GENERATE A LIST OF FILE PATHS
+        dropbox = self.settings["dropbox"]
+        for d in os.listdir(dropbox):
+            filepath = os.path.join(dropbox, d)
+            if os.path.isfile(filepath) and os.path.splitext(filepath)[1] != ".fits":
+                # Recursively create missing directories
+                if not os.path.exists(dropbox + "/non_fits_files"):
+                    os.makedirs(dropbox + "/non_fits_files")
+                filename = os.path.basename(filepath)
+                path = f'{dropbox}/non_fits_files/{filename}'
+                shutil.move(filepath, path)
+
         # FILTER THE FITS FILES FOUND IN THE DIRECTORY
         efoscSpectra, sofiSpectra, efoscImages, sofiImages, unmatchedFrames = self.filter_directory_of_fits_frame(
-            batchSize=2000
+            batchSize=10000
         )
+
+        # UPDATE REMAINING FITS FILE COUNT
+        self.fitsCount -= len(unmatchedFrames)
+        for i in efoscSpectra, sofiSpectra, efoscImages, sofiImages:
+            if i:
+                self.fitsCount -= len(i.files_filtered())
 
         # MOVE UNMATCHED FRAMES
         if len(unmatchedFrames):
@@ -105,7 +124,8 @@ class importer(object):
             for f in unmatchedFrames:
                 filename = os.path.basename(f)
                 path = f'{dropbox}/unmatched_frames/{filename}'
-                shutil.move(f, path)
+                filepath = f'{dropbox}/{filename}'
+                shutil.move(filepath, path)
 
         for l, t in zip([efoscSpectra, sofiSpectra, efoscImages, sofiImages], ['efosc_spectra', 'sofi_spectra', 'efosc_imaging', 'sofi_imaging']):
             if not l:
@@ -170,7 +190,7 @@ class importer(object):
                 print(f"There are no more {table} frames remaining to import into the archive")
 
         self.log.debug('completed the ``ingest`` method')
-        return None
+        return self.fitsCount
 
     def filter_directory_of_fits_frame(
             self,
@@ -197,15 +217,24 @@ class importer(object):
         # GENERATE A LIST OF FITS FILE PATHS
         allMatched = []
         fitsPaths = []
+        fitsNames = []
         pathToDirectory = self.settings["dropbox"]
         for d in os.listdir(pathToDirectory):
             filepath = os.path.join(pathToDirectory, d)
             if os.path.isfile(filepath) and os.path.splitext(filepath)[1] == ".fits":
                 fitsPaths.append(filepath)
+                fitsNames.append(os.path.basename(filepath))
+
+        # KEEP TRACK OF FITS COUNT
+        self.fitsCount = len(fitsPaths)
+
+        if not len(fitsPaths):
+            return [], [], [], [], []
 
         # LIMIT TO BATCHSIZE
         if batchSize:
             fitsPaths = fitsPaths[:batchSize]
+            fitsNames = fitsNames[:batchSize]
 
         # GENERATE THE IMAGECOLLECTION
         from ccdproc import ImageFileCollection
@@ -214,10 +243,29 @@ class importer(object):
         collection = ImageFileCollection(
             location=pathToDirectory, filenames=fitsPaths, keywords=keys)
 
+        # collection.summary.pprint_all()
+
+        # CRAP FRAMES
+        try:
+            if str(collection.summary['INSTRUME'].all()) == "--":
+                unmatchedFrames = fitsNames
+                return None, None, None, None, unmatchedFrames
+        except:
+            pass
+
+        # NO OBSTECH?
+        try:
+            if str(collection.summary['OBSTECH'].all()) == "--":
+                obstechSpec = False
+                obstechImg = False
+        except:
+            obstechSpec = (collection.summary['OBSTECH'] == 'SPECTRUM')
+            obstechImg = (collection.summary['OBSTECH'] == 'IMAGE')
+
         # EFOSC SPECTRA
         matches = (collection.summary['INSTRUME'] == "EFOSC") & (
             (collection.summary['ESO DPR TECH'] == 'SPECTRUM') |
-            (collection.summary['OBSTECH'] == 'SPECTRUM')) & (collection.summary['BITPIX'] != 8)
+            obstechSpec) & (collection.summary['BITPIX'] != 8)
         efoscSpectra = collection.summary['file'][matches]
         files = []
         files[:] = [f for f in efoscSpectra]
@@ -231,7 +279,7 @@ class importer(object):
         # SOFI SPECTRA
         matches = (collection.summary['INSTRUME'] == "SOFI") & (
             (collection.summary['ESO DPR TECH'] == 'SPECTRUM') |
-            (collection.summary['OBSTECH'] == 'SPECTRUM')) & (collection.summary['BITPIX'] != 8)
+            obstechSpec) & (collection.summary['BITPIX'] != 8)
         sofiSpectra = collection.summary['file'][matches]
         files = []
         files[:] = [f for f in sofiSpectra]
@@ -245,7 +293,7 @@ class importer(object):
         # EFOSC IMAGES
         matches = (collection.summary['INSTRUME'] == "EFOSC") & (
             (collection.summary['ESO DPR TECH'] == 'IMAGE') |
-            (collection.summary['OBSTECH'] == 'IMAGE'))
+            obstechImg)
         efoscImages = collection.summary['file'][matches]
         files = []
         files[:] = [f for f in efoscImages]
@@ -259,7 +307,7 @@ class importer(object):
         # SOFI IMAGES
         matches = (collection.summary['INSTRUME'] == "SOFI") & (
             (collection.summary['ESO DPR TECH'] == 'IMAGE') |
-            (collection.summary['OBSTECH'] == 'IMAGE'))
+            obstechImg)
         sofiImages = collection.summary['file'][matches]
         files = []
         files[:] = [f for f in sofiImages]
@@ -271,7 +319,7 @@ class importer(object):
             sofiImages = None
 
         # FIND UNMATCHED FRAMES
-        unmatchedFrames = list(np.setdiff1d(fitsPaths, allMatched))
+        unmatchedFrames = list(np.setdiff1d(fitsNames, allMatched))
 
         self.log.debug(
             'completed the ``filter_directory_of_fits_frame`` method')
@@ -344,13 +392,14 @@ class importer(object):
             log=log,
             settings=settings
         )
-        primaryIds, filePaths, archivePaths = ingester.select_files_to_archive('efosc_spectra')
+        primaryIds, filePaths, archivePaths = ingester.select_files_to_archive(
+            'efosc_spectra')
         ```
         """
         self.log.debug('starting the ``select_files_to_archive`` method')
 
         sqlQuery = f"""
-            select primaryId, filePath, archivePath from {tableName} where filePath is not null; 
+            select primaryId, filePath, archivePath from {tableName} where filePath is not null;
         """
         rows = readquery(
             log=self.log,

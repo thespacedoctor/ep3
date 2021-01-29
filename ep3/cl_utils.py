@@ -6,10 +6,12 @@ Documentation for ep3 can be found here: http://ep3.readthedocs.org
 Usage:
     ep3 init
     ep3 import [-s <pathToSettingsFile>]  
+    ep3 clean [-s <pathToSettingsFile>]  
 
 Options:
     init                                   setup the ep3 settings file for the first time
     import                                 import the NTT data into the database (headers) and the archive file-system
+    clean                                  run the MySQL stored procedures to clean up FITS keyword values in database space
 
     -h, --help                             show this help message
     -v, --version                          show version
@@ -24,6 +26,7 @@ import pickle
 from docopt import docopt
 from fundamentals import tools, times
 from subprocess import Popen, PIPE, STDOUT
+from fundamentals.mysql import writequery
 
 
 def tab_complete(text, state):
@@ -116,11 +119,37 @@ def main(arguments=None):
 
     if a["import"]:
         from ep3 import importer
-        ingester = importer(
-            log=log,
-            settings=settings
-        )
-        ingester.ingest()
+        remainingFrameCount = 1
+        while remainingFrameCount > 0:
+            ingester = importer(
+                log=log,
+                settings=settings
+            )
+            remainingFrameCount = ingester.ingest()
+            print(f'{remainingFrameCount} frames remain to be imported into the archive from the dropbox folder')
+
+    if a["clean"]:
+        procedures = ["ep3_update_currentfilenames()",
+                      "ep3_clean_transientBucketSummaries()",
+                      "ep3_basic_keyword_value_corrections()",
+                      "ep3_force_match_object_to_frame()",
+                      "ep3_set_file_associations()",
+                      "ep3_flag_frames_for_release()",
+                      "ep3_set_data_rel_versions()",
+                      "ep3_flag_transient_frames_where_transient_not_in_frame()",
+                      "ep3_set_zeropoint_in_efosc_images()",
+                      "ep3_set_maglim_magat_in_images()",
+                      "ep3_binary_table_keyword_updates()",
+                      "ep3_create_spectrum_binary_table_rows()"]
+
+        for p in procedures:
+            sqlQuery = f"""CALL {p};"""
+            print(f"Running the `{p}` procedure")
+            writequery(
+                log=log,
+                sqlQuery=sqlQuery,
+                dbConn=dbConn
+            )
 
     # CALL FUNCTIONS/OBJECTS
 

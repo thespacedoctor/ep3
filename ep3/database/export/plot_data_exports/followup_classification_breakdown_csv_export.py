@@ -17,7 +17,6 @@ import csv
 from docopt import docopt
 from fundamentals.mysql import readquery
 from fundamentals import tools
-import ep3.database.housekeeping.flags.update_transientbucketsummaries_flags as utf
 # from ..__init__ import *
 
 ###################################################################
@@ -32,6 +31,8 @@ import ep3.database.housekeeping.flags.update_transientbucketsummaries_flags as 
 # LAST MODIFIED : June 18, 2014
 # CREATED : June 18, 2014
 # AUTHOR : DRYX
+
+
 def followup_classification_breakdown_csv_export(
         dbConn,
         log,
@@ -43,12 +44,12 @@ def followup_classification_breakdown_csv_export(
 
     - ``dbConn`` -- mysql database connection
     - ``log`` -- logger
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
 
