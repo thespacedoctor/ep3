@@ -5,7 +5,8 @@ COMMENT 'A procedure to set currentFilenames in database'
 BEGIN
     -- SET VARIABLE
     SET @array = 'efosc_imaging,sofi_imaging,efosc_spectra,sofi_spectra,corrupted_files,';
-    WHILE (LOCATE(',', @array) > 0)
+    WHILE (LOCATE(',', @array) > 0)    WHILE (LOCATE(',', @array) > 0)
+
     DO
         SET @item = SUBSTRING(@array, 1, LOCATE(',',@array)-1);
         SET @array = SUBSTRING(@array, LOCATE(',', @array) + 1);

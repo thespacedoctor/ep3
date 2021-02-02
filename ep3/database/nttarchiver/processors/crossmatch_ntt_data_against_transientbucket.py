@@ -27,77 +27,8 @@ import os
 from docopt import docopt
 from HMpTy.mysql import add_htm_ids_to_mysql_database_table
 
-def main(arguments=None):
-    """
-    *The main function used when ``crossmatch_ntt_data_against_transientbucket.py`` is run as a single script from the cl, or when installed as a cl command*
-    """
-    ## STANDARD LIB ##
-    ## THIRD PARTY ##
-    ## LOCAL APPLICATION ##
+#
 
-    # setup the command-line util settings
-    from fundamentals import tools
-    su = tools(
-        arguments=arguments,
-        docString=__doc__,
-        logLevel="DEBUG"
-    )
-    arguments, settings, log, dbConn = su.setup()
-
-    # unpack remaining cl arguments using `exec` to setup the variable names
-    # automatically
-    for arg, val in list(arguments.items()):
-        if arg[0] == "-":
-            varname = arg.replace("-", "") + "Flag"
-        else:
-            varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)):
-            exec(varname + " = '%s'" % (val,))
-        else:
-            exec(varname + " = %s" % (val,))
-        if arg == "--dbConn":
-            dbConn = val
-        log.debug('%s = %s' % (varname, val,))
-
-    ## START LOGGING ##
-    startTime = dcu.get_now_sql_datetime()
-    log.info(
-        '--- STARTING TO RUN THE crossmatch_ntt_data_against_transientbucket.py AT %s' %
-        (startTime,))
-
-    if "update" not in locals():
-        update = False
-
-    # call the worker function
-    # x-if-settings-or-database-credentials
-    crossmatch_ntt_data_against_transientbucket(
-        dbConn,
-        log,
-        updateArchivedFile=update
-    )
-
-    if "dbConn" in locals() and dbConn:
-        dbConn.commit()
-        dbConn.close()
-    ## FINISH LOGGING ##
-    endTime = dcu.get_now_sql_datetime()
-    runningTime = dcu.calculate_time_difference(startTime, endTime)
-    log.info(
-        '-- FINISHED ATTEMPT TO RUN THE crossmatch_ntt_data_against_transientbucket.py AT %s (RUNTIME: %s) --' %
-        (endTime, runningTime, ))
-
-    return
-
-###################################################################
-# CLASSES                                                         #
-###################################################################
-
-###################################################################
-# PUBLIC FUNCTIONS                                                #
-###################################################################
-# LAST MODIFIED : October 29, 2013
-# CREATED : October 29, 2013
-# AUTHOR : DRYX
 
 def crossmatch_ntt_data_against_transientbucket(
         dbConn,
@@ -113,12 +44,12 @@ def crossmatch_ntt_data_against_transientbucket(
     - ``dbConn`` -- mysql database connection
     - ``log`` -- logger
     - ``updateArchivedFile`` -- update the names in the archived files?
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
     """
@@ -131,7 +62,7 @@ def crossmatch_ntt_data_against_transientbucket(
 
     log.debug(
         'completed the ````crossmatch_ntt_data_against_transientbucket`` function')
-    ## VARIABLES ##
+    # VARIABLES ##\
 
     dbSettings = "???"
 
@@ -186,7 +117,7 @@ def crossmatch_ntt_data_against_transientbucket(
     for t, s, r in zip(tableNames, skipNames, searchRadius):
         # grab metadata from ntt fits files
         sqlQuery = """
-            SELECT primaryId, RA, DECL, object, ESO_OBS_TARG_NAME, transientBucketId, currentFilename FROM %s WHERE RA is not NULL and filename not like '%s%%' and (filetype_key_calibration = 13 or filetype_key_calibration = 10 or filetype_key_calibration = 11) %s  and lock_row = 0
+            SELECT primaryId, RA, DECL, object, ESO_OBS_TARG_NAME, transientBucketId, currentFilename FROM %s WHERE RA is not NULL and filename not like '%s%%' and (filetype_key_calibration = 13 or filetype_key_calibration = 10 or filetype_key_calibration = 11) %s and lock_row = 0
         """ % (t, s, updateArchivedFile)
         rows = readquery(
             log=log,
