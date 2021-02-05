@@ -35,45 +35,6 @@ def rewrite_fits_headers(
     for table in tables:
         instrument = table.replace("_imaging", "").replace("_spectra", "")
 
-        # RENAME THE FIT FILES ##
-        #########################
-        # select the rows where an updated filename has been added
-        sqlQuery = """
-            select currentFilename, currentFilepath, primaryId, updatedFilename, updatedFilepath from %s where updatedFilename is not NULL and lock_row = 0
-        """ % (table,)
-        rows = readquery(
-            log=log,
-            sqlQuery=sqlQuery,
-            dbConn=dbConn
-        )
-
-        # move the FITS file from the dropbox or current location to the local
-        # archive
-        for row in rows:
-            source = row["currentFilepath"]
-            destination = row["updatedFilepath"]
-
-            try:
-                log.info("attempting to rename file %s to %s" %
-                         (source, destination))
-                os.rename(source, destination)
-            except Exception as e:
-                log.error(
-                    "could not rename file %s to %s - failed with this error: %s " %
-                    (source, destination, str(e),))
-                continue
-
-            # update the database to show that the file has been moved the the
-            # local file system
-            sqlQuery = """
-                update %s set currentFilename = '%s', currentFilepath = '%s', updatedFilename = NULL, updatedFilepath = NULL where primaryId = %s  and lock_row = 0
-            """ % (table, row["updatedFilename"], row["updatedFilepath"], row["primaryId"])
-            writequery(
-                log=log,
-                sqlQuery=sqlQuery,
-                dbConn=dbConn,
-            )
-
         ## REWRITE FITSHEADERS ##
         #########################
         # select the rows where a rewrite is required
@@ -130,15 +91,6 @@ def rewrite_fits_headers(
         'completed the ``execute_required_fits_header_and_rename_and_rewrites`` function')
 
     return None
-
-# use the tab-trigger below for new function
-# x-def-with-logger
-###################################################################
-# PRIVATE (HELPER) FUNCTIONS                                      #
-###################################################################
-# LAST MODIFIED : September 8, 2013
-# CREATED : September 8, 2013
-# AUTHOR : DRYX
 
 
 def generate_primary_fits_header_from_database(
