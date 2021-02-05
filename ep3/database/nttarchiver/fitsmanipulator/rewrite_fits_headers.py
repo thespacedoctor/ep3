@@ -1,105 +1,4 @@
-#!/usr/local/bin/python
-# encoding: utf-8
-"""
-*Rewrite those FITS files that have had keyword updates. Also generate new binary tables FITS files.*
 
-:Author:
-    David Young
-
-Usage:
-    pm_rewrite_fits_headers -s <pathToSettingsFile>
-    pm_rewrite_fits_headers --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName>
-
-Options:
-    -h, --help          show this help message
-    -s, --settingsFile  path to the settings file
-    --host=<host>       database host
-    --user=<user>       database user
-    --passwd=<passwd>   database password
-    --dbName=<dbName>   database name
-"""
-from __future__ import division
-from builtins import zip
-from builtins import str
-from builtins import range
-from past.utils import old_div
-import sys
-import os
-from docopt import docopt
-from astrocalc.times import conversions
-from astrocalc.coords import unit_conversion
-# SUPPRESS MATPLOTLIB WARNINGS
-import warnings
-warnings.filterwarnings("ignore")
-import pyfits as pf
-
-def main(arguments=None):
-    """
-    *The main function used when ``rewrite_fits_headers.py`` is run as a single script from the cl, or when installed as a cl command*
-    """
-    ## STANDARD LIB ##
-    ## THIRD PARTY ##
-    ## LOCAL APPLICATION ##
-
-    # setup the command-line util settings
-    from fundamentals import tools
-    su = tools(
-        arguments=arguments,
-        docString=__doc__,
-        logLevel="DEBUG"
-    )
-    arguments, settings, log, dbConn = su.setup()
-
-    # unpack remaining cl arguments using `exec` to setup the variable names
-    # automatically
-    for arg, val in list(arguments.items()):
-        if arg[0] == "-":
-            varname = arg.replace("-", "") + "Flag"
-        else:
-            varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)):
-            exec(varname + " = '%s'" % (val,))
-        else:
-            exec(varname + " = %s" % (val,))
-        if arg == "--dbConn":
-            dbConn = val
-        log.debug('%s = %s' % (varname, val,))
-
-    ## START LOGGING ##
-    startTime = dcu.get_now_sql_datetime()
-    log.info(
-        '--- STARTING TO RUN THE rewrite_fits_headers.py AT %s' %
-        (startTime,))
-
-    # call the worker function
-    # x-if-settings-or-database-credentials
-    rewrite_fits_headers(
-        dbConn=dbConn,
-        log=log,
-    )
-
-    if "dbConn" in locals() and dbConn:
-        dbConn.commit()
-        dbConn.close()
-    ## FINISH LOGGING ##
-    endTime = dcu.get_now_sql_datetime()
-    runningTime = dcu.calculate_time_difference(startTime, endTime)
-    log.info(
-        '-- FINISHED ATTEMPT TO RUN THE rewrite_fits_headers.py AT %s (RUNTIME: %s) --' %
-        (endTime, runningTime, ))
-
-    return
-
-###################################################################
-# CLASSES                                                         #
-###################################################################
-
-###################################################################
-# PUBLIC FUNCTIONS                                                #
-###################################################################
-# LAST MODIFIED : September 9, 2013
-# CREATED : September 9, 2013
-# AUTHOR : DRYX
 
 def rewrite_fits_headers(
         dbConn,
@@ -111,12 +10,12 @@ def rewrite_fits_headers(
 
     - ``dbConn`` -- mysql database connection
     - ``log`` -- logger
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
 
@@ -240,6 +139,8 @@ def rewrite_fits_headers(
 # LAST MODIFIED : September 8, 2013
 # CREATED : September 8, 2013
 # AUTHOR : DRYX
+
+
 def generate_primary_fits_header_from_database(
         dbConn,
         log,
@@ -254,12 +155,12 @@ def generate_primary_fits_header_from_database(
     - ``log`` -- logger
     - ``primaryId`` -- primary id of the row in database
     - ``dbTable`` -- database table name containing file metadata
-    
+
 
     **Return**
 
     - ``fitsHeader`` -- the fits header generated from results of sql query
-    
+
 
     .. todo::
     """
@@ -436,6 +337,8 @@ def generate_primary_fits_header_from_database(
 # LAST MODIFIED : April 9, 2013
 # CREATED : April 9, 2013
 # AUTHOR : DRYX
+
+
 def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instrument, oneDSpectrumPath):
     """
     *Given the primary header from the final NTT Pipeline reduced spectrum, build the extension header needed for the ESO Phase III ready spectrum bintable.*
@@ -448,12 +351,12 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
     - ``primaryId`` -- the primaryId of the row in the database table refering to this file (1d spectrum FITS file)
     - ``instrument`` -- sofi or efosc
     - ``oneDSpectrumPath`` -- path to the associated 1D spectrum file
-    
+
 
     **Return**
 
     - ``extensionHeader`` -- the primary header needed for the ESO Phase III ready spectrum bintable.
-    
+
     """
     ## STANDARD LIB ##
     import datetime
@@ -631,6 +534,8 @@ def generate_bintable_extension_header(log, dbConn, pixelCount, primaryId, instr
 # LAST MODIFIED : September 9, 2013
 # CREATED : September 9, 2013
 # AUTHOR : DRYX
+
+
 def rewrite_fits_file(
         dbConn,
         log,
@@ -651,12 +556,12 @@ def rewrite_fits_file(
     - ``pathToFitsFile`` -- path to the fits file to rewrite
     - ``fitsHeader`` -- the primary header to write into the fits file
     - ``binaryTable`` -- if binary table generate data and 2 headers
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
     """
@@ -744,6 +649,8 @@ def rewrite_fits_file(
 # LAST MODIFIED : September 9, 2013
 # CREATED : April 9, 2013
 # AUTHOR : DRYX
+
+
 def build_bintable_data(log, pathToFitsFile, oneDSpectrumFluxScalingFactor):
     """
     *Build the binary table data extensions of the final reduced spectrum*
@@ -753,12 +660,12 @@ def build_bintable_data(log, pathToFitsFile, oneDSpectrumFluxScalingFactor):
     - ``log`` -- logger
     - ``pathToFitsFile`` -- path to the final NTT Pipeline reduced spectrum.
     - ``oneDSpectrumFluxScalingFactor`` -- manually measured scaling factor for the spectrum (from photometry)
-    
+
 
     **Return**
 
     - ``binTableHdu`` -- the binary table HDU
-    
+
     """
     ## STANDARD LIB ##
     ## THIRD PARTY ##

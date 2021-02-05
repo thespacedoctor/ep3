@@ -7,11 +7,16 @@ Usage:
     ep3 init
     ep3 import [-s <pathToSettingsFile>]  
     ep3 clean [-s <pathToSettingsFile>]  
+    ep3 match [<transientId> <fitsObject>] [-s <pathToSettingsFile>]  
 
 Options:
     init                                   setup the ep3 settings file for the first time
     import                                 import the NTT data into the database (headers) and the archive file-system
     clean                                  run the MySQL stored procedures to clean up FITS keyword values in database space
+    match                                  match frames against transient names and coordinates, then update coordinates and object names in FITS frames and rename files accordingly
+    <transientId>                          the transient ID of the source you want to manually force a match with frames with object name <fitsObject>
+    <fitsObject>                           the object name in the FITS frames you want to manually force a match with frames whose coordinates are close to <transientId>
+
 
     -h, --help                             show this help message
     -v, --version                          show version
@@ -41,7 +46,7 @@ def main(arguments=None):
     su = tools(
         arguments=arguments,
         docString=__doc__,
-        logLevel="WARNING",
+        logLevel="ERROR",
         options_first=False,
         projectName="ep3",
         defaultSettingsFile=True
@@ -129,18 +134,18 @@ def main(arguments=None):
             print(f'{remainingFrameCount} frames remain to be imported into the archive from the dropbox folder')
 
     if a["clean"]:
-        procedures = ["ep3_update_currentfilenames()",
-                      "ep3_clean_transientBucketSummaries()",
-                      "ep3_basic_keyword_value_corrections()",
-                      "ep3_force_match_object_to_frame()",
-                      "ep3_set_file_associations()",
-                      "ep3_flag_frames_for_release()",
-                      "ep3_set_data_rel_versions()",
-                      "ep3_flag_transient_frames_where_transient_not_in_frame()",
-                      "ep3_set_zeropoint_in_efosc_images()",
-                      "ep3_set_maglim_magat_in_images()",
-                      "ep3_binary_table_keyword_updates()",
-                      "ep3_create_spectrum_binary_table_rows()"]
+        procedures = [
+            "ep3_clean_transientBucketSummaries()",
+            "ep3_basic_keyword_value_corrections()",
+            "ep3_force_match_object_to_frame()",
+            "ep3_set_file_associations()",
+            "ep3_flag_frames_for_release()",
+            "ep3_set_data_rel_versions()",
+            "ep3_flag_transient_frames_where_transient_not_in_frame()",
+            "ep3_set_zeropoint_in_efosc_images()",
+            "ep3_set_maglim_magat_in_images()",
+            "ep3_binary_table_keyword_updates()",
+            "ep3_create_spectrum_binary_table_rows()"]
 
         for p in procedures:
             sqlQuery = f"""CALL {p};"""
@@ -150,6 +155,21 @@ def main(arguments=None):
                 sqlQuery=sqlQuery,
                 dbConn=dbConn
             )
+
+    if a["match"]:
+        if not a["transientId"] or not a["fitsObject"]:
+            a["transientId"] = False
+            a["fitsObject"] = False
+        from ep3 import crossmatcher
+        matcher = crossmatcher(
+            log=log,
+            dbConn=dbConn,
+            settings=settings
+        )
+        matcher.match(
+            transientId=a["transientId"],
+            fitsObject=a["fitsObject"]
+        )
 
     # CALL FUNCTIONS/OBJECTS
 

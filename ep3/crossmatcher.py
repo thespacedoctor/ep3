@@ -20,6 +20,8 @@ from fundamentals.mysql import readquery
 import collections
 from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
 from HMpTy.mysql import conesearch
+from operator import itemgetter
+from fundamentals.renderer import list_of_dictionaries
 
 
 class crossmatcher(object):
@@ -33,22 +35,44 @@ class crossmatcher(object):
 
     **Usage:**
 
-    To setup your logger, settings and database connections, please use the ``fundamentals`` package (`see tutorial here <http://fundamentals.readthedocs.io/en/latest/#tutorial>`_). 
+    To setup your logger, settings and database connections, please use the ``fundamentals`` package (`see tutorial here <http://fundamentals.readthedocs.io/en/latest/#tutorial>`_).
 
     To initiate a crossmatcher object, use the following:
 
     ```eval_rst
     .. todo::
 
-        - add usage info
-        - create a sublime snippet for usage
-        - create cl-util for this class
         - add a tutorial about ``crossmatcher`` to documentation
-        - create a blog post about what ``crossmatcher`` does
     ```
 
+    To only run the automatic matching to update frames whose coordinates are close to a transient AND whose object name matches an AKA of that same transient:
+
     ```python
-    usage code 
+    from ep3 import crossmatcher
+    matcher = crossmatcher(
+        log=log,
+        dbConn=dbConn,
+        settings=settings
+    )
+    matcher.match(
+        transientId=False,
+        fitsObject=False
+    )
+    ```
+
+    Then to force a match of a frame which doesn't pass automatic checking but you have manually checked:
+
+    ```python
+    from ep3 import crossmatcher
+    matcher = crossmatcher(
+        log=log,
+        dbConn=dbConn,
+        settings=settings
+    )
+    matcher.match(
+        transientId=12812982,
+        fitsObject="SNBang"
+    )
     ```
 
     """
@@ -67,71 +91,155 @@ class crossmatcher(object):
 
         return None
 
-    def match(self):
+    def match(
+            self,
+            transientId=False,
+            fitsObject=False):
         """
-        *match the frames agains the list of transients in the marshall*
+        *match the frames against the list of transients in the marshall*
 
-        **Return:**
-            - ``crossmatcher``
+        **Key Arguments:**
+            - `transientId` -- transient ID to match with frames with fitsObject. Default *False* (perform automated matches)
+            - `fitsObject` -- fitsObject to match to transientID. Default *False* (perform automated matches)
 
         **Usage:**
 
-        ```eval_rst
-        .. todo::
-
-            - add usage info
-            - create a sublime snippet for usage
-            - create cl-util for this method
-            - update the package tutorial if needed
-        ```
+        To only run the automatic matching to update frames whose coordinates are close to a transient AND whose object name matches an AKA of that same transient:
 
         ```python
-        usage code 
+        from ep3 import crossmatcher
+        matcher = crossmatcher(
+            log=log,
+            dbConn=dbConn,
+            settings=settings
+        )
+        matcher.match(
+            transientId=False,
+            fitsObject=False
+        )
+        ```
+
+        Then to force a match of a frame which doesn't pass automatic checking but you have manually checked:
+
+        ```python
+        from ep3 import crossmatcher
+        matcher = crossmatcher(
+            log=log,
+            dbConn=dbConn,
+            settings=settings
+        )
+        matcher.match(
+            transientId=12812982,
+            fitsObject="SNBang"
+        )
         ```
         """
         self.log.debug('starting the ``match`` method')
 
-        # FIRST ROUND OF MATCHING
-        fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects = self.list_frames(
-            tableName="efosc_spectra",
-            frameTypes=["acquisition_image", "weight", "science"]
-        )
-        matchIndies, matches, akas = self.crossmatch_transientBucketSummaries(
-            fitsRas=fitsRas,
-            fitsDecs=fitsDecs
-        )
+        dbTables = ["efosc_spectra", "efosc_imaging",
+                    "sofi_imaging", "sofi_spectra"]
+        for dbTable in dbTables:
 
-        # FIRST DEAL WITH FRAMES WHERE FRAME COORDINATES AND OBJECT NAME
-        # MATCHES CORRDINATES & NAME IN MARSHALL
-        solidMatches = []
-        counts = collections.Counter(matchIndies.flatten())
-        for i, m in zip(matchIndies, matches.list):
-            if fitsObjects[i].lower() in akas[m["transientBucketId"]] or fitsObjects[i].lower().replace("at2", "sn2") in akas[m["transientBucketId"]]:
-                solidMatches.append({"primaryId": fitsPrimaryIds[
-                                    i], "transientBucketId": m["transientBucketId"]})
-                m["solidMatch"] = 1
-            else:
-                m["solidMatch"] = 0
-            m["primaryId"] = fitsPrimaryIds[i]
-            m["fitsObject"] = fitsObjects[i]
-            m["matchCount"] = counts[i]
+            # FIRST ROUND OF MATCHING
+            fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects, fitsReduced = self.list_frames(
+                tableName=dbTable,
+                frameTypes=["acquisition_image", "weight", "science"]
+            )
+            if not len(fitsRas):
+                print(f"* All frames matched in the `{dbTable}` table, have a pat on the back!\n")
+                continue
+            matchIndies, matches, akas = self.crossmatch_transientBucketSummaries(
+                fitsRas=fitsRas,
+                fitsDecs=fitsDecs
+            )
 
-        # INSERT ALL MATCHES BACK INTO THE DATABASE
-        insert_list_of_dictionaries_into_database_tables(
-            dbConn=self.dbConn,
-            log=self.log,
-            dictList=solidMatches,
-            dbTableName="efosc_spectra",
-            uniqueKeyList=["primaryId"],
-            dateModified=True,
-            dateCreated=True,
-            batchSize=2500,
-            replace=True,
-            dbSettings=self.settings["database settings"]
-        )
+            # MAKE LOWERCASE AKAS
+            akasLowered = {}
+            if len(akas):
+                for k, v in akas.items():
+                    akasLowered[k] = [one.lower().replace("-", "")
+                                      for one in v]
+
+            # FIRST DEAL WITH FRAMES WHERE FRAME COORDINATES AND OBJECT NAME
+            # MATCHES CORRDINATES & NAME IN MARSHALL
+            solidMatches = []
+            solidMatchObjects = []
+            ropeyMatchObjects = []
+            ropeyMatches = []
+            ropeyMatchUniqueIndex = []
+            counts = collections.Counter(matchIndies.flatten())
+            for i, m in zip(matchIndies, matches.list):
+                m["reduced"] = fitsReduced[i]
+                m["primaryId"] = fitsPrimaryIds[i]
+                m["fitsObject"] = fitsObjects[i]
+                m["matchCount"] = counts[i]
+                if transientId != False and fitsObject != False and fitsObjects[i].lower().strip().replace("-", "") == fitsObject.lower().strip().replace("-", "") and m["transientBucketId"] == int(transientId):
+                    match = True
+                elif fitsObjects[i].strip().lower().replace("-", "") in akas[m["transientBucketId"]] or fitsObjects[i].strip().lower().replace("at2", "sn2").replace("-", "") in akasLowered[m["transientBucketId"]]:
+                    match = True
+                else:
+                    match = False
+                    ui = str(m["transientBucketId"]) + m["fitsObject"]
+                    if ui not in ropeyMatchUniqueIndex:
+                        ropeyMatchUniqueIndex.append(ui)
+                        m["solidMatch"] = 0
+                        m["akas"] = (",").join(akas[m["transientBucketId"]])
+                        ropeyMatches.append(m)
+                        ropeyMatchObjects.append(m["fitsObject"])
+                if match is True:
+                    matchDict = {"primaryId": fitsPrimaryIds[
+                        i], "transientBucketId": m["transientBucketId"]}
+                    # ONLY UPDATE OBJECT/COORDINATES IN REDUCED FRAMES
+                    if fitsReduced[i]:
+                        matchDict["object"] = akas[m["transientBucketId"]][0]
+                        # ONLY UPDATE COORDINATES IN SPECTRAL FRAMES
+                        if "spec" in dbTable:
+                            matchDict["ra"] = m["raDeg"]
+                            matchDict["decl"] = m["decDeg"]
+                    m["solidMatch"] = 1
+                    solidMatchObjects.append(m["fitsObject"])
+                    solidMatches.append(matchDict)
+
+            # FILTER OUT MATCHED ROWS
+            unmatched = []
+            for m, o in zip(ropeyMatches, ropeyMatchObjects):
+                if o not in solidMatchObjects:
+                    unmatched.append(m)
+
+            # INSERT ALL MATCHES BACK INTO THE DATABASE
+            insert_list_of_dictionaries_into_database_tables(
+                dbConn=self.dbConn,
+                log=self.log,
+                dictList=solidMatches,
+                dbTableName=dbTable,
+                uniqueKeyList=["primaryId"],
+                dateModified=True,
+                dateCreated=True,
+                batchSize=2500,
+                replace=True,
+                dbSettings=self.settings["database settings"]
+            )
+
+            # SORT REMAINING MATCHES
+            if not len(ropeyMatches):
+                print(f"* All frames matched in the `{dbTable}` table, have a pat on the back!\n")
+                continue
+            unmatched = sorted(unmatched, key=itemgetter(
+                'fitsObject'))
+
+            dataSet = list_of_dictionaries(
+                log=self.log,
+                listOfDictionaries=unmatched
+            )
+            tableData = dataSet.table(filepath=None)
+            print(f"Check the matches below for the `{dbTable}` table and comfirm matches with ... ")
+            # UPDATE `unit_tests`.`efosc_spectra` SET
+            # `filetype_key_calibration` = 5 WHERE (`primaryId` = '622');
+            print(tableData)
+            print()
 
         self.log.debug('completed the ``match`` method')
-        return crossmatcher
+        return None
 
     def list_frames(
             self,
@@ -188,11 +296,11 @@ class crossmatcher(object):
             keys[:] = [str(row["key"]) for row in rows]
             keys = (",").join(keys)
             sqlQuery = f"""
-                select primaryId, ra, decl, object from {tableName} where transientBucketId is null or transientBucketId = 0 and filetype_key_calibration in ({keys}) {locked};
+                select primaryId, ra, decl, object,  if(filetype_key_reduction_stage=3,1,0) as reduced from {tableName} where transientBucketId is null or transientBucketId = 0 and filetype_key_calibration in ({keys}) {locked};
             """
         else:
             sqlQuery = f"""
-                select primaryId, ra, decl, object from {tableName} where transientBucketId is null or transientBucketId = 0 {locked};
+                select primaryId, ra, decl, object,  if(filetype_key_reduction_stage=3,1,0) as reduced from {tableName} where transientBucketId is null or transientBucketId = 0 {locked};
             """
         rows = readquery(
             log=self.log,
@@ -200,14 +308,16 @@ class crossmatcher(object):
             dbConn=self.dbConn
         )
 
+        print(sqlQuery)
+
         if len(rows):
-            fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects = zip(
-                *[(row["primaryId"], row["ra"], row["decl"], row["object"]) for row in rows])
+            fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects, fitsReduced = zip(
+                *[(row["primaryId"], row["ra"], row["decl"], row["object"], row["reduced"]) for row in rows])
         else:
-            fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects = [], [], [], []
+            fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects, fitsReduced = [], [], [], [], []
 
         self.log.debug('completed the ``list_frames`` method')
-        return fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects
+        return fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects, fitsReduced
 
     def crossmatch_transientBucketSummaries(
             self,
@@ -262,14 +372,20 @@ class crossmatcher(object):
         )
         matchIndies, matches = cs.search()
 
+        if not len(matchIndies):
+            self.log.debug(
+                'completed the ``crossmatch_transientBucketSummaries`` method')
+            return matchIndies, matches, []
+
         # COMPILE A LIST OF ALL TRANSIENT IDS
+
         allTransientIds = []
         allTransientIds[:] = [m["transientBucketId"] for m in matches.list]
         allTransientIds = (",").join([str(t)
                                       for t in list(set(allTransientIds))])
         # GRAB ALL AKAs FOR THE TRANSIENTS
         sqlQuery = f"""
-           select transientBucketId, name from marshall_transient_akas where transientBucketId in ({allTransientIds})
+           select transientBucketId, name from marshall_transient_akas where transientBucketId in ({allTransientIds}) order by master desc
         """
         rows = readquery(
             log=self.log,
@@ -282,9 +398,9 @@ class crossmatcher(object):
         akas = {}
         for r in rows:
             if r["transientBucketId"] in akas:
-                akas[r["transientBucketId"]].append(r["name"].lower())
+                akas[r["transientBucketId"]].append(r["name"])
             else:
-                akas[r["transientBucketId"]] = [r["name"].lower()]
+                akas[r["transientBucketId"]] = [r["name"]]
 
         self.log.debug(
             'completed the ``crossmatch_transientBucketSummaries`` method')

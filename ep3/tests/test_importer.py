@@ -76,8 +76,7 @@ class test_importer(unittest.TestCase):
     def test_03_clean_up_function(self):
 
         from fundamentals.mysql import writequery
-        procedures = ["ep3_update_currentfilenames()",
-                      "ep3_clean_transientBucketSummaries()",
+        procedures = ["ep3_clean_transientBucketSummaries()",
                       "ep3_basic_keyword_value_corrections()",
                       "ep3_force_match_object_to_frame()",
                       "ep3_set_file_associations()",

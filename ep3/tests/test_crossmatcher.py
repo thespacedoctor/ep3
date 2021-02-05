@@ -54,6 +54,12 @@ class test_crossmatcher(unittest.TestCase):
         )
         matcher.match()
 
+        matcher.match(transientId=867435, fitsObject="ASASSN15oi")
+        matcher.match(transientId=2768144, fitsObject="AT2016ad")
+        matcher.match(transientId=2784332, fitsObject="AT2016bc")
+        matcher.match(transientId=7539752, fitsObject="SN2017ens")
+        matcher.match(transientId=10171766, fitsObject="name")
+
     def test_crossmatcher_function_exception(self):
 
         from ep3 import crossmatcher
