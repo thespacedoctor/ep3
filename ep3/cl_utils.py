@@ -8,15 +8,30 @@ Usage:
     ep3 import [-s <pathToSettingsFile>]  
     ep3 clean [-s <pathToSettingsFile>]  
     ep3 match [<transientId> <fitsObject>] [-s <pathToSettingsFile>]  
+    ep3 rewrite [-s <pathToSettingsFile>]  
+    ep3 export <ssdr> <instrument> <fileType> <exportPath> [-s <pathToSettingsFile>]  
+    ep3 esolist table <pathToCsv> <ssdr> [-s <pathToSettingsFile>]  
+    ep3 esolist rename <pathToDownloads> [-s <pathToSettingsFile>]  
 
 Options:
-    init                                   setup the ep3 settings file for the first time
-    import                                 import the NTT data into the database (headers) and the archive file-system
     clean                                  run the MySQL stored procedures to clean up FITS keyword values in database space
+    esolist                                tools to work with the file listing as hosted in the ESO SAF (useful for preping a new data release)
+    export                                 export the frames needed for a data release
+    import                                 import the NTT data into the database (headers) and the archive file-system
+    init                                   setup the ep3 settings file for the first time
     match                                  match frames against transient names and coordinates, then update coordinates and object names in FITS frames and rename files accordingly
-    <transientId>                          the transient ID of the source you want to manually force a match with frames with object name <fitsObject>
-    <fitsObject>                           the object name in the FITS frames you want to manually force a match with frames whose coordinates are close to <transientId>
+    rename                                 rename the frames downloaded from the ESO SAF
+    rewrite                                refresh the fits headers based on what is in the database and regenerate all binary table files
+    table                                  create a database table with the ESO CSV listing of files in a specific SSDR
 
+    <exportPath>                           path to export to frames to
+    <fileType>                             image, weight, spec1d, spec2d, bintable or all
+    <fitsObject>                           the object name in the FITS frames you want to manually force a match with frames whose coordinates are close to <transientId>
+    <instrument>                           efosc, sofi or all
+    <pathToCsv>                            path the the CSV file to
+    <pathToDownloads>                       path to a directory of downloaded files
+    <ssdr>                                 the SSDR number
+    <transientId>                          the transient ID of the source you want to manually force a match with frames with object name <fitsObject>
 
     -h, --help                             show this help message
     -v, --version                          show version
@@ -32,6 +47,7 @@ from docopt import docopt
 from fundamentals import tools, times
 from subprocess import Popen, PIPE, STDOUT
 from fundamentals.mysql import writequery
+from os.path import expanduser
 
 
 def tab_complete(text, state):
@@ -107,7 +123,6 @@ def main(arguments=None):
         pickle.dump(pickleMe, open(pathToPickleFile, "wb"))
 
     if a["init"]:
-        from os.path import expanduser
         home = expanduser("~")
         filepath = home + "/.config/ep3/ep3.yaml"
         try:
@@ -134,27 +149,14 @@ def main(arguments=None):
             print(f'{remainingFrameCount} frames remain to be imported into the archive from the dropbox folder')
 
     if a["clean"]:
-        procedures = [
-            "ep3_clean_transientBucketSummaries()",
-            "ep3_basic_keyword_value_corrections()",
-            "ep3_force_match_object_to_frame()",
-            "ep3_set_file_associations()",
-            "ep3_flag_frames_for_release()",
-            "ep3_set_data_rel_versions()",
-            "ep3_flag_transient_frames_where_transient_not_in_frame()",
-            "ep3_set_zeropoint_in_efosc_images()",
-            "ep3_set_maglim_magat_in_images()",
-            "ep3_binary_table_keyword_updates()",
-            "ep3_create_spectrum_binary_table_rows()"]
 
-        for p in procedures:
-            sqlQuery = f"""CALL {p};"""
-            print(f"Running the `{p}` procedure")
-            writequery(
-                log=log,
-                sqlQuery=sqlQuery,
-                dbConn=dbConn
-            )
+        from ep3 import clean
+        cleaner = clean(
+            log=log,
+            dbConn=dbConn,
+            settings=settings
+        )
+        cleaner.clean()
 
     if a["match"]:
         if not a["transientId"] or not a["fitsObject"]:
@@ -170,6 +172,74 @@ def main(arguments=None):
             transientId=a["transientId"],
             fitsObject=a["fitsObject"]
         )
+
+    if a["rewrite"]:
+        from ep3 import fits_writer
+        writer = fits_writer(
+            log=log,
+            dbConn=dbConn,
+            settings=settings
+        )
+        newFramePaths, newTablePaths = writer.write()
+
+        print("Here are all of the fits frames that have been refreshed:")
+        for i in newFramePaths:
+            print(i)
+
+        print("\n\n\nHere are all of the fits binary tables that have been rewritten:")
+        for i in newTablePaths:
+            print(i)
+
+    if a["export"]:
+        if a["instrument"] == "all":
+            a["instrument"] = False
+        if a["fileType"] == "all":
+            a["fileType"] = False
+
+        home = expanduser("~")
+        a["exportPath"] = a["exportPath"].replace("~", home)
+
+        from ep3 import export_ssdr
+        exporter = export_ssdr(
+            log=log,
+            dbConn=dbConn,
+            settings=settings,
+            exportPath=a["exportPath"],
+            ssdr=a["ssdr"],
+            instrument=False,
+            fileType=False
+        )
+        exporter.export()
+
+    if a["esolist"] and a["table"]:
+
+        home = expanduser("~")
+        a["pathToCsv"] = a["pathToCsv"].replace("~", home)
+
+        from ep3 import ssdr_snapshot
+        ssdr = ssdr_snapshot(
+            log=log,
+            dbConn=dbConn,
+            settings=settings
+        )
+        ssdr.add_database_table(
+            ssdr_ver=a["ssdr"],
+            pathToCsvListing=a["pathToCsv"])
+
+    if a["esolist"] and a["rename"]:
+
+        home = expanduser("~")
+        a["pathToDownloads"] = a["pathToDownloads"].replace("~", home)
+
+        from ep3 import ssdr_snapshot
+        ssdr = ssdr_snapshot(
+            log=log,
+            dbConn=False,
+            settings=settings
+        )
+        count = ssdr.ssdr_file_reset(
+            pathToDownloadDir=a["pathToDownloads"])
+        print(f"Successfully renamed {count} files.")
 
     # CALL FUNCTIONS/OBJECTS
 

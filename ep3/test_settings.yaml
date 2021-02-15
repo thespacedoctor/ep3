@@ -7,16 +7,12 @@ database settings:
     password: utpass
  
 
-dropbox: "overwritted/in/unit_test"
-archive-root: "overwritted/in/unit_test"
+dropbox: "overwritten/in/unit_test"
+# archive-root: "overwritten/in/unit_test"
+archive-root: "/Users/Dave/Dropbox/Desktop/archive"
 ## past number of days to check for new data (keep at a few days in case new data was added or there is a delay getting data into the eso archive)
 download window size: 4
 
-conesearch radii arcsec:
-    efosc_imaging: 100
-    sofi_imaging: 900
-    sofi_spectra: 600
-    efosc_spectra: 600
 
 logging settings:
     formatters:
@@ -44,5 +40,5 @@ logging settings:
             maxBytes: 102400
             backupCount: 1
     root:
-        level: ERROR
+        level: WARNING
         handlers: [file,console]

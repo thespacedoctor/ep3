@@ -19,6 +19,7 @@ import os
 from docopt import docopt
 from fundamentals.mysql import readquery, writequery
 
+
 def main(arguments=None):
     """
     *The main function used when ``update_eso_phaseIII_metadata_table.py`` is run as a single script from the cl, or when installed as a cl command*
@@ -90,6 +91,8 @@ def main(arguments=None):
 # AUTHOR : DRYX
 # copy usage method(s) into function below and select the following snippet from the command palette:
 # x-setup-worker-function-parameters-from-usage-method
+
+
 def update_eso_phaseIII_metadata_table(
         dbConn,
         log):
@@ -102,12 +105,12 @@ def update_eso_phaseIII_metadata_table(
     - ``log`` -- logger
     # copy usage method(s) here and select the following snippet from the command palette:
     # x-setup-docstring-keys-from-selected-usage-options
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
 
@@ -188,8 +191,6 @@ def update_eso_phaseIII_metadata_table(
                 dbConn=dbConn,
             )
 
-            print(sqlQuery)
-
     log.debug('completed the ``update_eso_phaseIII_metadata_table`` function')
     return None
 
@@ -203,6 +204,7 @@ def update_eso_phaseIII_metadata_table(
 # CREATED : March 28, 2014
 # AUTHOR : DRYX
 
+
 def _update_filetype_metadata_tables(
     log,
     dbConn,
@@ -214,12 +216,12 @@ def _update_filetype_metadata_tables(
 
     - ``log`` -- the logger
     - ``dbConn`` -- the database connection
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
 

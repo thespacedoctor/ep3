@@ -34,6 +34,8 @@ from fundamentals import tools
 # LAST MODIFIED : June 18, 2014
 # CREATED : June 18, 2014
 # AUTHOR : DRYX
+
+
 def image_fwhm_bins_csv_exports(
         dbConn,
         log,
@@ -45,12 +47,12 @@ def image_fwhm_bins_csv_exports(
 
     - ``dbConn`` -- mysql database connection
     - ``log`` -- logger
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
 
@@ -76,8 +78,6 @@ def image_fwhm_bins_csv_exports(
                 sqlQuery=sqlQuery,
                 dbConn=dbConn
             )
-
-            print(sqlQuery)
 
             resolution = 0.2
             minValue = int(

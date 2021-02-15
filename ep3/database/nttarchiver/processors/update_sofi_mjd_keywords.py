@@ -1,99 +1,4 @@
-#!/usr/local/bin/python
-# encoding: utf-8
-"""
-*Check MJD related keywords in the SOFI data - errors in pipeline output*
 
-:Author:
-    David Young
-
-Usage:
-    pm_update_sofi_mjd_keywords -s <pathToSettingsFile>
-    pm_update_sofi_mjd_keywords --host=<host> --user=<user> --passwd=<passwd> --dbName=<dbName>
-
-Options:
-    -h, --help            show this help message
-    -s, --settingsFile    path to the settings file
-    --host=<host>         database host
-    --user=<user>         database user
-    --passwd=<passwd>     database password
-    --dbName=<dbName>     database name
-"""
-from __future__ import print_function
-from __future__ import division
-from builtins import str
-from builtins import range
-from past.utils import old_div
-import sys
-import os
-from docopt import docopt
-
-def main(arguments=None):
-    """
-    *The main function used when ``update_sofi_mjd_keywords.py`` is run as a single script from the cl, or when installed as a cl command*
-    """
-    ## STANDARD LIB ##
-    ## THIRD PARTY ##
-    ## LOCAL APPLICATION ##
-
-    # setup the command-line util settings
-    from fundamentals import tools
-    su = tools(
-        arguments=arguments,
-        docString=__doc__,
-        logLevel="DEBUG"
-    )
-    arguments, settings, log, dbConn = su.setup()
-
-    # unpack remaining cl arguments using `exec` to setup the variable names
-    # automatically
-    for arg, val in list(arguments.items()):
-        if arg[0] == "-":
-            varname = arg.replace("-", "") + "Flag"
-        else:
-            varname = arg.replace("<", "").replace(">", "")
-        if isinstance(val, ("".__class__, u"".__class__)):
-            exec(varname + " = '%s'" % (val,))
-        else:
-            exec(varname + " = %s" % (val,))
-        if arg == "--dbConn":
-            dbConn = val
-        log.debug('%s = %s' % (varname, val,))
-
-    ## START LOGGING ##
-    startTime = dcu.get_now_sql_datetime()
-    log.info(
-        '--- STARTING TO RUN THE update_sofi_mjd_keywords.py AT %s' %
-        (startTime,))
-
-    # call the worker function
-    # x-if-settings-or-database-credentials
-    update_sofi_mjd_keywords(
-        dbConn=dbConn,
-        log=log
-    )
-
-    if "dbConn" in locals() and dbConn:
-        dbConn.commit()
-        dbConn.close()
-    ## FINISH LOGGING ##
-    endTime = dcu.get_now_sql_datetime()
-    runningTime = dcu.calculate_time_difference(startTime, endTime)
-    log.info(
-        '-- FINISHED ATTEMPT TO RUN THE update_sofi_mjd_keywords.py AT %s (RUNTIME: %s) --' %
-        (endTime, runningTime, ))
-
-    return
-
-###################################################################
-# CLASSES                                                         #
-###################################################################
-
-###################################################################
-# PUBLIC FUNCTIONS                                                #
-###################################################################
-# LAST MODIFIED : September 9, 2013
-# CREATED : September 9, 2013
-# AUTHOR : DRYX
 
 def update_sofi_mjd_keywords(
         dbConn,
@@ -105,12 +10,12 @@ def update_sofi_mjd_keywords(
 
     - ``dbConn`` -- mysql database connection
     - ``log`` -- logger
-    
+
 
     **Return**
 
     - None
-    
+
 
     .. todo::
     """
@@ -137,7 +42,6 @@ def update_sofi_mjd_keywords(
             sqlQuery = """
                 select tmid, mjd_obs,ndit, primaryId ,filename, ncombine, prov1,prov2,prov3,prov4,prov5,prov6,prov7,prov8,prov9,prov10,prov11,prov12,prov13,prov14,prov15,prov16,prov17,prov18,prov19,prov20,prov21,prov22,prov23,prov24,prov25,prov26,prov27,prov28,prov29,prov30,prov31,prov32,prov33,prov34,prov35,prov36,prov37,prov38,prov39,prov40,prov41,prov42,prov43,prov44,prov45,prov46,prov47,prov48,prov49,prov50,prov51,prov52,prov53,prov54,prov55,prov56,prov57,prov58,prov59,prov60 from %(ft)s where esophaseIII = 1  and lock_row = 0
             """ % locals()
-            print(sqlQuery)
 
         rows = readquery(
             log=log,

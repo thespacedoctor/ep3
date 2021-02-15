@@ -22,6 +22,7 @@ from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
 from HMpTy.mysql import conesearch
 from operator import itemgetter
 from fundamentals.renderer import list_of_dictionaries
+from fundamentals.mysql import writequery
 
 
 class crossmatcher(object):
@@ -139,12 +140,17 @@ class crossmatcher(object):
         dbTables = ["efosc_spectra", "efosc_imaging",
                     "sofi_imaging", "sofi_spectra"]
         for dbTable in dbTables:
-
+            if dbTable == "efosc_imaging":
+                print(
+                    "Not matching `efosc_imaging` yet. Modify 'dbTables' list in code if you want to proceed with matching these frames.")
+                continue
             # FIRST ROUND OF MATCHING
             fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects, fitsReduced = self.list_frames(
                 tableName=dbTable,
-                frameTypes=["acquisition_image", "weight", "science"]
+                frameTypes=["acquisition_image", "weight", "science"],
+                locked=True
             )
+
             if not len(fitsRas):
                 print(f"* All frames matched in the `{dbTable}` table, have a pat on the back!\n")
                 continue
@@ -173,9 +179,10 @@ class crossmatcher(object):
                 m["primaryId"] = fitsPrimaryIds[i]
                 m["fitsObject"] = fitsObjects[i]
                 m["matchCount"] = counts[i]
+
                 if transientId != False and fitsObject != False and fitsObjects[i].lower().strip().replace("-", "") == fitsObject.lower().strip().replace("-", "") and m["transientBucketId"] == int(transientId):
                     match = True
-                elif fitsObjects[i].strip().lower().replace("-", "") in akas[m["transientBucketId"]] or fitsObjects[i].strip().lower().replace("at2", "sn2").replace("-", "") in akasLowered[m["transientBucketId"]]:
+                elif fitsObjects[i].strip().lower().replace("-", "") in akasLowered[m["transientBucketId"]] or fitsObjects[i].strip().lower().replace("at2", "sn2").replace("-", "") in akasLowered[m["transientBucketId"]] or fitsObjects[i].strip().lower().replace("sn2", "at2").replace("-", "") in akasLowered[m["transientBucketId"]]:
                     match = True
                 else:
                     match = False
@@ -184,6 +191,7 @@ class crossmatcher(object):
                         ropeyMatchUniqueIndex.append(ui)
                         m["solidMatch"] = 0
                         m["akas"] = (",").join(akas[m["transientBucketId"]])
+                        m["match command"] = f"ep3 match {m['transientBucketId']} {m['fitsObject']}"
                         ropeyMatches.append(m)
                         ropeyMatchObjects.append(m["fitsObject"])
                 if match is True:
@@ -220,6 +228,18 @@ class crossmatcher(object):
                 dbSettings=self.settings["database settings"]
             )
 
+            # UPDATE OBJECT NAMES AND EXPORT PATHS
+            sqlQueries = [
+                f"""call ep3_set_exportfilenames()""",
+                f"""call ep3_set_file_associations()"""
+            ]
+            for sqlQuery in sqlQueries:
+                writequery(
+                    log=self.log,
+                    sqlQuery=sqlQuery,
+                    dbConn=self.dbConn
+                )
+
             # SORT REMAINING MATCHES
             if not len(ropeyMatches):
                 print(f"* All frames matched in the `{dbTable}` table, have a pat on the back!\n")
@@ -237,6 +257,26 @@ class crossmatcher(object):
             # `filetype_key_calibration` = 5 WHERE (`primaryId` = '622');
             print(tableData)
             print()
+
+        # THIS IS NEEDED TO KEEP NAMES CONSISTENT ACROSS RELEASES:
+        forceFix = {
+            660036: "LSQ15adm",
+            867433: "ASASSN-15og",
+            44764: 'NGC772-OT1',
+            881844: "PS15cej",
+            4432161: "ASASSN-15aj",
+            25914: "MASTEROTJ081031.62+111450.2"
+        }
+        tables = ["efosc_spectra", "sofi_spectra",
+                  "efosc_imaging", "sofi_imaging"]
+        for t in tables:
+            for k, v in forceFix.items():
+                sqlQuery = f"""update {t} set object = "{v}" where transientBucketId = {k};"""
+                writequery(
+                    log=self.log,
+                    sqlQuery=sqlQuery,
+                    dbConn=self.dbConn
+                )
 
         self.log.debug('completed the ``match`` method')
         return None
@@ -296,19 +336,18 @@ class crossmatcher(object):
             keys[:] = [str(row["key"]) for row in rows]
             keys = (",").join(keys)
             sqlQuery = f"""
-                select primaryId, ra, decl, object,  if(filetype_key_reduction_stage=3,1,0) as reduced from {tableName} where transientBucketId is null or transientBucketId = 0 and filetype_key_calibration in ({keys}) {locked};
+                select primaryId, ra, decl, object,  if(filetype_key_reduction_stage=3,1,0) as reduced from {tableName} where transientBucketId is null or transientBucketId = 0 and filetype_key_calibration in ({keys}) and filetype_key_reduction_stage = 3 and ra is not null and decl is not null  {locked} and do_not_release = 0;
             """
         else:
             sqlQuery = f"""
-                select primaryId, ra, decl, object,  if(filetype_key_reduction_stage=3,1,0) as reduced from {tableName} where transientBucketId is null or transientBucketId = 0 {locked};
+                select primaryId, ra, decl, object,  if(filetype_key_reduction_stage=3,1,0) as reduced from {tableName} where transientBucketId is null or transientBucketId = 0 and filetype_key_reduction_stage = 3  and ra is not null and decl is not null {locked} and do_not_release = 0;
             """
+
         rows = readquery(
             log=self.log,
             sqlQuery=sqlQuery,
             dbConn=self.dbConn
         )
-
-        print(sqlQuery)
 
         if len(rows):
             fitsPrimaryIds, fitsRas, fitsDecs, fitsObjects, fitsReduced = zip(
@@ -364,7 +403,7 @@ class crossmatcher(object):
             columns="transientBucketId, masterName",
             ra=fitsRas,
             dec=fitsDecs,
-            radiusArcsec=600,
+            radiusArcsec=200,
             separations=True,
             distinct=False,
             sqlWhere=False,

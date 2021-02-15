@@ -1,763 +1,0 @@
-SIMPLE  =                    T / FITS STANDARD                                  BITPIX  =                    8 / Character information                          NAXIS   =                    0 / No image data array present                    EXTEND  =                    T / File may contain extensions                    ORIGIN  = 'NOAO-IRAF FITS Image Kernel July 2003' / FITS file originator        DATE    = '2019-11-06T11:46:00' / Date FITS file was generated                  END                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             XTENSION= 'BINTABLE'           / Mask extension                                 BITPIX  =                    8 / Bits per pixel                                 NAXIS   =                    2 / Number of axes                                 NAXIS1  =                    8 / Number of bytes per line                       NAXIS2  =                 1007 / axis length                                    PCOUNT  =                18952 / Heap size in bytes                             GCOUNT  =                    1 / Only one group                                 TFIELDS =                    1 / 1 Column field                                 TTYPE1  = 'COMPRESSED_DATA '   / Type of PLIO_1 data                            TFORM1  = 'PI(20)  '           / Variable word array                            ORIGIN  = 'NOAO-IRAF FITS Image Kernel July 2003' / FITS file originator        EXTNAME = 'pl      '           / Extension name                                 INHERIT =                    F / Inherits global header                         ZIMAGE  =                    T / Is a compressed image                          ZCMPTYPE= 'PLIO_1  '           / IRAF image masks                               ZBITPIX =                   32 / BITPIX for uncompressed image                  ZNAXIS  =                    2 / NAXIS for uncompressed image                   ZNAXIS1 =                 1024 / Axis length                                    ZNAXIS2 =                 1007 / Axis length                                    ZTILE1  =                 1024 / Axis length                                    ZTILE2  =                    1 / Axis length                                    ZNAME1  = 'depth   '           / PLIO mask depth                                ZVAL1   =                   27 / Parameter value                                IRAF-TLM= '2019-11-06T11:46:00' / Time of last modification                     DATE    = '2019-11-06T11:46:00' / Date this file was written (dd/mm/yyyy        EXPTIME =                120.0 / Total integ. time of all exposure (s) 00:02:00 MJD-OBS =       58562.14874842          / Obs start 2019-03-20T03:34:11.864     DATE-OBS= '2019-03-20T03:34:11.8631'    / Observing date                        ORIGFILE= 'name_H_0023.fits'            / Original File Name                    TELESCOP= 'ESO-NTT '                    / ESO <TEL>                             INSTRUME= 'SOFI    '                    / Instrument used                       OBSERVER= '        '                    / Name of observer                      PI-COI  = '        '                    / Name of PI and COI                    UTC     =            12851.000          / 03:34:11.000 UT at start              LST     =            38446.686          / 10:40:46.686 LST at start             OBJECT  = '2018jmt '           / Original target                                RA      =            103.68534          / 06:54:44.4 RA (J2000) pointing        DEC     =            -59.50857          / -59:30:30.8  DEC (J2000) pointing     EQUINOX =                2000.          / Standard FK5 (years)                  RADECSYS= 'FK5     '                    / Coordinate reference frame            CRVAL1  =            103.68534          / 06:54:44.4, RA at ref pixel           CRVAL2  =            -59.50857          / -59:30:30.8, DEC at ref pixel         CRPIX1  =                512.0          / Ref pixel in X                        CRPIX2  =                512.0          / Ref pixel in Y                        CDELT1  =  -8.0000000000000E-5 / SS arcsec per pixel in RA                      CDELT2  =  8.00000000000003E-5 / SS arcsec per pixel in DEC                     CTYPE1  = 'RA---TAN'                    / pixel coordinate system               CTYPE2  = 'DEC--TAN'                    / pixel coordinate system               PC1_1   =             0.000000          / Translation matrix element            PC1_2   =             1.000000          / Translation matrix element            PC2_1   =            -1.000000          / Translation matrix element            PC2_2   =             0.000000          / Translation matrix element            HIERARCH ESO OBS DID         = 'ESO-VLT-DIC.OBS-1.11' / OBS Dictionary          HIERARCH ESO OBS EXECTIME    =         7055 / Expected execution time           HIERARCH ESO OBS GRP         = '0       '   / linked blocks                     HIERARCH ESO OBS ID          =    100417843 / Observation block ID              HIERARCH ESO OBS NAME        = 'SN2018jmt_JHK_J_17_5_19_on_so' / OB name        HIERARCH ESO OBS OBSERVER    = 'UNKNOWN '   / Observer Name                     HIERARCH ESO OBS PI-COI ID   =         2931 / ESO internal PI-COI ID            HIERARCH ESO OBS PI-COI NAME = 'UNKNOWN '   / PI-COI name                       HIERARCH ESO OBS PROG ID     = '199.D-0143(Q)' / ESO program identification     HIERARCH ESO OBS TARG NAME   = '2018jmt '   / OB target name                    HIERARCH ESO OBS START       = '2019-03-20T02:55:32' / OB start time            HIERARCH ESO OBS TPLNO       =            3 / Template number within OB         HIERARCH ESO TPL DID         = 'ESO-VLT-DIC.TPL-1.9' / Data dictionary for TPL  HIERARCH ESO TPL ID          = 'SOFI_img_obs_AutoJitterArray_1' / Template signaHIERARCH ESO TPL NAME        = '        '   / Template name                     HIERARCH ESO TPL PRESEQ      = 'SOFI_img_obs_AutoJitterArray_1.seq' / Sequencer HIERARCH ESO TPL START       = '2019-03-20T03:29:33' / TPL start time           HIERARCH ESO TPL VERSION     = '@(#) $Revision: 132887 $' / Version of the templHIERARCH ESO TPL NEXP        =           16 / Number of exposures within templatHIERARCH ESO TPL EXPNO       =            3 / Exposure number within template   HIERARCH ESO SEQ RELOFFSETX  =     0.000000 / relative X offset                 HIERARCH ESO SEQ CUMOFFSETX  =   -69.444444 / cummulative X offset              HIERARCH ESO SEQ RELOFFSETY  =     0.000000 / relative Y offset                 HIERARCH ESO SEQ POISSON     =           10 / Homogeneity factor for Poisson ranHIERARCH ESO SEQ CUMOFFSETA  =   -20.000000 / cummulative alpha offset          HIERARCH ESO SEQ CUMOFFSETD  =   -20.000000 / cummulative delta offset          HIERARCH ESO SEQ CUMOFFSETY  =   -69.444444 / cummulative Y offset              HIERARCH ESO DPR CATG        = 'SCIENCE '   / Observation category              HIERARCH ESO DPR TYPE        = 'OBJECT  '   / Observation type                  HIERARCH ESO DPR TECH        = 'IMAGE   '   / Observation technique             HIERARCH ESO TEL DID         = 'ESO-VLT-DIC.TCS' / Data dictionary for TEL      HIERARCH ESO TEL ID          = 'v 293588'   / TCS version number                HIERARCH ESO TEL DATE        = '2009-06-05T01:00:00' / TCS installation date    HIERARCH ESO TEL ALT         =       41.758 / Alt angle at start (deg)          HIERARCH ESO TEL AZ          =       34.482 / Az angle at start (deg) S=0,W=90  HIERARCH ESO TEL GEOELEV     =         2377. / Elevation above sea level (m)    HIERARCH ESO TEL GEOLAT      =     -29.2584 / Tel geo latitute (+=North) (deg)  HIERARCH ESO TEL GEOLON      =     -70.7345 / Tel geo longitude (+=East) (deg)  HIERARCH ESO TEL OPER        = 'I. CONDOR'  / Telescope Operator                HIERARCH ESO TEL FOCU ID     = 'NA      '   / Telescope focus station ID        HIERARCH ESO TEL FOCU LEN    =       38.501 / Focal length (m)                  HIERARCH ESO TEL FOCU SCALE  =        5.360 / Focal scale (arcsec/mm)           HIERARCH ESO TEL FOCU VALUE  =       -3.539 / M2 setting (mm)                   HIERARCH ESO TEL PARANG START=       76.966 / Parallactic angle at start (deg)  HIERARCH ESO TEL AIRM START  =        1.500 / Airmass at start                  HIERARCH ESO TEL AMBI FWHM START=      0.99 / Observatory Seeing queried from ASHIERARCH ESO TEL AMBI PRES START=    770.40 / Observatory ambient air pressure qHIERARCH ESO TEL AMBI WINDSP =         3.80 / Observatory ambient wind speed queHIERARCH ESO TEL AMBI WINDDIR=           28. / Observatory ambient wind directioHIERARCH ESO TEL AMBI RHUM   =           24. / Observatory ambient relative humiHIERARCH ESO TEL AMBI TEMP   =        15.90 / Observatory ambient temperature quHIERARCH ESO TEL MOON RA     =   169.038151 / 11:16:09.1 RA (J2000) (deg)       HIERARCH ESO TEL MOON DEC    =      9.72347 / 09:43:24.4 DEC (J2000) (deg)      HIERARCH ESO TEL TH M1 TEMP  =        -1.00 / M1 superficial temperature        HIERARCH ESO TEL TRAK STATUS = 'NORMAL  '   / Tracking status                   HIERARCH ESO TEL DOME STATUS = 'FULLY-OPEN' / Dome status                       HIERARCH ESO TEL CHOP ST     =            F / True when chopping is active      HIERARCH ESO TEL TARG ALPHA  =    65447.100 / Alpha coordinate for the target   HIERARCH ESO TEL TARG DELTA  =  -593010.800 / Delta coordinate for the target   HIERARCH ESO TEL TARG EPOCH  =     2000.000 / Epoch                             HIERARCH ESO TEL TARG EPOCHSYSTEM= 'J       ' / Epoch system (default J=Julian) HIERARCH ESO TEL TARG EQUINOX=     2000.000 / Equinox                           HIERARCH ESO TEL TARG PMA    =     0.000000 / Proper Motion Alpha               HIERARCH ESO TEL TARG PMD    =     0.000000 / Proper motion Delta               HIERARCH ESO TEL TARG RADVEL =        0.000 / Radial velocity                   HIERARCH ESO TEL TARG PARALLAX=       0.000 / Parallax                          HIERARCH ESO TEL TARG COORDTYPE= 'M       ' / Coordinate type (M=mean A=apparentHIERARCH ESO TEL TSS TEMP8   =       13.670 / Temperature Sensing System        HIERARCH ESO TEL PARANG END  =       77.488 / Parallactic angle at end (deg)    HIERARCH ESO TEL AIRM END    =        1.508 / Airmass at end                    HIERARCH ESO TEL AMBI FWHM END=        0.99 / Observatory Seeing queried from ASHIERARCH ESO TEL AMBI PRES END=      770.40 / Observatory ambient air pressure qHIERARCH ESO ADA ABSROT START=    144.68626 / Abs rot angle at exp start (deg)  HIERARCH ESO ADA POSANG      =      0.00000 / Position angle at start           HIERARCH ESO ADA GUID STATUS = 'OFF     '   / Status of autoguider              HIERARCH ESO ADA ABSROT END  =    143.95592 / Abs rot angle at exp end (deg)    HIERARCH ESO INS SWSIM       = 'NORMAL  '   / Software simulated functions      HIERARCH ESO INS ID          = 'SOFI/HW 1.0/SW 38575/' / Instrument identificatiHIERARCH ESO INS TIME        = '2019-03-20T03:36:20.893' / Aquired status time  HIERARCH ESO INS DID         = 'ESO-VLT-DIC.ISAAC_ICS-0.1' / Data dictionary forHIERARCH ESO INS MODE        = 'LARGE_FIELD_IMAGING' / Instrument mode used     HIERARCH ESO INS PIXSCALE    =        0.288 / Pixel scale                       HIERARCH ESO INS TEMP-MON TEMP1=     76.180 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME1= 'Cool Down' / Sensor placement                 HIERARCH ESO INS TEMP-MON TEMP2=     71.500 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME2= 'Camera Unit' / Sensor placement               HIERARCH ESO INS TEMP-MON TEMP3=    106.950 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME3= 'Radiation Shield' / Sensor placement          HIERARCH ESO INS TEMP-MON TEMP4=     71.610 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME4= 'Mirror  ' / Sensor placement                  HIERARCH ESO INS TEMP-MON TEMP5=     73.050 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME5= 'Collimator' / Sensor placement                HIERARCH ESO INS TEMP-MON TEMP6=     70.290 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME6= 'Warm-Up ' / Sensor placement                  HIERARCH ESO INS TEMP-MON TEMP7=    151.220 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME7= 'Sorption' / Sensor placement                  HIERARCH ESO INS TEMP-MON TEMP8=     75.280 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME8= 'Aperture Wheel' / Sensor placement            HIERARCH ESO INS TEMP-MON TEMP9=     16.510 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME9= 'Ambient ' / Sensor placement                  HIERARCH ESO INS TEMP-MON TEMP10=     1.850 / Status temp. scanner              HIERARCH ESO INS TEMP-MON NAME10= 'Delta T ' / Sensor placement                 HIERARCH ESO INS TEMP-DETSW  =       65.596 / Temp. of detector SW              HIERARCH ESO INS TEMP-DETSW SET=     65.000 / Set temp. of detector SW          HIERARCH ESO INS TEMP-VACP   =    4.508E-06 / Vessel pressure                   HIERARCH ESO INS OPTI1 ID    = 'large_field' / OPTIi unique ID                  HIERARCH ESO INS OPTI1 NAME  = 'large_field' / OPTIi name                       HIERARCH ESO INS OPTI1 NO    =            6 / OPTIi slot number                 HIERARCH ESO INS OPTI1 TYPE  = 'MASK    '   / OPTIi element                     HIERARCH ESO INS COLLIM ENC  =       -16911 / Collimator encoder position       HIERARCH ESO INS FILT1 ID    = 'H       '   / FILTi unique ID                   HIERARCH ESO INS FILT1 NAME  = 'H       '   / FILTi name                        HIERARCH ESO INS FILT1 NO    =           12 / FILTi slot number                 HIERARCH ESO INS FILT1 TYPE  = 'FILTER  '   / FILTi element                     HIERARCH ESO INS FILT2 ID    = 'open    '   / FILTi unique ID                   HIERARCH ESO INS FILT2 NAME  = 'open    '   / FILTi name                        HIERARCH ESO INS FILT2 NO    =            4 / FILTi slot number                 HIERARCH ESO INS FILT2 TYPE  = 'FREE    '   / FILTi element                     HIERARCH ESO INS OPTI2 ID    = 'open    '   / OPTIi unique ID                   HIERARCH ESO INS OPTI2 NAME  = 'open    '   / OPTIi name                        HIERARCH ESO INS OPTI2 NO    =            8 / OPTIi slot number                 HIERARCH ESO INS OPTI2 TYPE  = 'FREE    '   / OPTIi element                     HIERARCH ESO INS OPTI3 ID    = 'LF      '   / OPTIi unique ID                   HIERARCH ESO INS OPTI3 NAME  = 'LF      '   / OPTIi name                        HIERARCH ESO INS OPTI3 NO    =            4 / OPTIi slot number                 HIERARCH ESO INS OPTI3 TYPE  = 'OBJECTIVE'  / OPTIi element                     HIERARCH ESO DET FRAM TYPE   = 'INT     '   / Frame type                        HIERARCH ESO DET FRAM NO     =            1 / Frame number                      HIERARCH ESO DET FRAM UTC    = '2019-03-20T03:36:19.8614' / Time Recv Frame     HIERARCH ESO DET EXP NO      =        14426 / Exposure Number                   HIERARCH ESO DET EXP UTC     = '2019-03-20T03:36:20.3657' / File Creation Time  HIERARCH ESO DET EXP NAME    = 'name_H_0023' / Exposure Name                    HIERARCH ESO DET CHIP ID     = 'ESO-Hawaii' / Detector ID                       HIERARCH ESO DET FILE CUBE ST=            F / Data Cube On/Off                  HIERARCH ESO DET DID         = 'ESO-VLT-DIC.IRACE-1.44' / Dictionary Name and ReHIERARCH ESO DET CON OPMODE  = 'NORMAL  '   / Operational Mode                  HIERARCH ESO DET IRACE SEQCONT=           F / Sequencer Cont. Mode              HIERARCH ESO DET CHIP NAME   = 'Hawaii  '   / Detector name                     HIERARCH ESO DET CHIP TYPE   = 'IR      '   / The Type of Det Chip              HIERARCH ESO DET CHIP NX     =         1024 / Pixels in X                       HIERARCH ESO DET CHIP NY     =         1024 / Pixels in Y                       HIERARCH ESO DET DIT         =   20.0000000 / Integration Time                  HIERARCH ESO DET NCORRS      =            2 / Read-Out Mode                     HIERARCH ESO DET NCORRS NAME = 'Double  '   / Read-Out Mode Name                HIERARCH ESO DET MODE NAME   = '        '   / DCS Detector Mode                 HIERARCH ESO DET DITDELAY    =        0.000 / Pause Between DITs                HIERARCH ESO DET NDIT        =            6 / # of Sub-Integrations             HIERARCH ESO DET NDITSKIP    =            0 / DITs skipped at 1st.INT           HIERARCH ESO DET CHOP NCYCLES=            4 / # of Chop Cycles                  HIERARCH ESO DET CHOP CYCSKIP=            0 / # of Chop Cycles to Skip          HIERARCH ESO DET CHOP ST     =            F / Chopping On/Off                   HIERARCH ESO DET RSPEED      =            4 / Read-Speed Factor                 HIERARCH ESO DET RSPEEDADD   =            0 / Read-Speed Add                    HIERARCH ESO DET WIN TYPE    =            0 / Win-Type: 0=SW/1=HW               HIERARCH ESO DET WIN STARTX  =     1.000000 / Lower Left X Ref                  HIERARCH ESO DET WIN STARTY  =     1.000000 / Lower left Y Ref                  HIERARCH ESO DET WIN NX      =         1024 / # of Pixels in X                  HIERARCH ESO DET WIN NY      =         1024 / # of Pixels in Y                  HIERARCH ESO DET IRACE ADC1 NAME= 'ADC-G1  ' / Name for ADC Board               HIERARCH ESO DET IRACE ADC1 HEADER=       0 / Header of ADC Board               HIERARCH ESO DET IRACE ADC1 ENABLE=       1 / Enable ADC Board (0/1)            HIERARCH ESO DET IRACE ADC1 FILTER1=      1 / ADC Filter Adjustment             HIERARCH ESO DET IRACE ADC1 FILTER2=      0 / ADC Filter Adjustment             HIERARCH ESO DET IRACE ADC1 DELAY=        7 / ADC Delay Adjustment              HIERARCH ESO DET CHOP FREQ   =     0.000000 / Chopping Frequency                HIERARCH ESO OCS COMP ID     = 'SW Version 33645 2000-03-04 01:28:56Z' / OS SoftHIERARCH ESO OCS DID         = 'ESO-VLT-DIC.SOFI_OS-0.1' / Data dictionary for OHIERARCH ESO OCS SELECT-ARM  = 'SW      '   / Detector arm                      ARCFILE = 'SOFI.2019-03-20T03:34:11.863.fits' / Archive File Name               CHECKSUM= 'lJZpmHXnlHXnlHXn'   / HDU checksum updated 2019-11-06T13:44:43       DATASUM = '3833362552'         / data unit checksum updated 2019-11-06T13:44:43 HIERARCH ESO DET CHIP PXSPACE = 1.8E-05 / Pixel-Pixel Spacing                   CROSSTAL= 'True    '                                                            WCSDIM  =                    2                                                  CD1_1   =  -8.0000000000000E-5                                                  CD2_2   =  8.00000000000001E-5                                                  LTM1_1  =                   1.                                                  LTM2_2  =                   1.                                                  WAT0_001= 'system=image'                                                        WAT1_001= 'wtype=tan axtype=ra'                                                 WAT2_001= 'wtype=tan axtype=dec'                                                TRIM    = 'Nov  6 13:44 Trim data section is [1:1024,1:1007]'                   FLATCOR = 'flat_20140428_H_56778_1.fits' / flat correction                      CCDSEC  = '[1:1024,1:1007]'                                                     BIASSEC = '[1:1024,1:1007]'                                                     CCDMEANT=           1257515083                                                  CCDPROC = 'Nov  6 13:44 CCD processing done'                                    M_EPOCH =                    F / TRUE if resulting from multiple epochs         PROV1   = 'SOFI.2019-03-20T03:34:11.863.fits' / Originating file                SINGLEXP=                    T / TRUE if resulting from single exposure         TRACE1  = 'SOFI.2019-03-20T03:34:11.863.fits' / Originating file                DIT     =                 20.0 / Integration Time                               NDIT    =                    6 / Number of sub-integrations                     FILETYPE=                32104 / pre-reduced image                              MJD-END =    58562.15015814222 / End of observations (days)                     TEXPTIME=                120.0 / Total integ. time of all exposure (s)          AIRMASS =    1.505356447271095 / mean airmass computed with astcalc                                                                                                                                                                             END                                                                                                 @      `      Ä      †      ¿      ‡                8     T     T     p     å     ®     ƒ     ‡   
-  ¯   
-  ¯   
-                                   
-  0   
-  0   
-  0     D     \     t     å     ®     »     Ë          $     @     @     \     x     î   
-  ∞   
-  ∞   
-  ƒ   
-  ÿ                                                                           
-  Ï   
-      
-     
-     
-     
-  (   
-  <   
-  <   
-  P   
-  P   
-  d   
-  d   
-  d     x     ê     ®     ®     ®     ®     ¿     ‹     ¯          0     L     d     Ä     ú     ∏     ∏     ‘                       
-      
-      
-  4   
-  4   
-  H   
-  \   
-  \   
-  p     Ñ     ú   
-  ¥   
-  ¥   
-  ¥   
-  ¥   
-  ¥   
-  ¥   
-  ¥   
-  ¥   
-  ¥   
-  »                                       	  ‹   	  Ó                ,     B     B     B     B     B     X     r     å     §     º     ‘     Ï             
-  4   
-  4   
-  4   
-  4   
-  4   
-  4   
-  4   
-  4     H     `   
-  x   
-  å   
-  †   
-  ¥   
-  ¥   
-  »   
-  »   
-  »   
-  »   
-  ‹          	     	      	8     	P     	h     	h     	Ä     	ò     	ò     	∞     	Ã     	Ë     
-     
-      
-<     
-X     
-t     
-å     
-§   
-  
-º   
-  
-º   
-  
-º   
-  
-º   
-  
-–     
-‰     
-¸          ,     D   
-  \   
-  \     p     à   
-  †   
-  †   
-  ¥   
-  ¥   
-  ¥   
-  ¥   
-  ¥   
-  »   
-  ‹                   
-  8   
-  8   
-  8   
-  8   
-  L     `     x     ê   
-  ®     º     ÿ     Ù          ,     H     H     d     Ä     ú     ∏     ‘               0     H     `     x     î     ∞     Ã     Ï          $     @     \     x     î     ¨   
-  ƒ   
-  ƒ   
-  ÿ     Ï               4     P     h     Ä     ú     ∏     ‘               $     <   
-  T   
-  h   
-  |   
-  |   
-  ê   
-  ê   
-  ê     §     º     ‘     ‘   
-  Ï   
-  Ï   
-  Ï   
-  Ï         
-     
-  ,   
-  @   
-  @   
-  @   
-  @   
-  @     T     l     Ñ     †     º     ÿ     ÿ     ÿ        
-                                                                                         
-     
-  0   
-  0   
-  0   
-  0   
-  0   
-  0   
-  0   
-  D   
-  X                                                                                                         
-  l   
-  Ä   
-  Ä   
-  Ä   
-  Ä   
-  Ä     î     ¨   
-  ƒ     ÿ                    $     D     d     Ñ     §     ƒ     ‰          $     @     \     x   
-  ê   
-  §   
-  §   
-  ∏                                             
-  Ã   
-  ‡   
-  Ù   
-            8     T     t     î     ¥     ‘     Ù          0     L     h     Ä     ò   
-  ∞     ƒ     ‹     Ù          $     <     T     l     Ñ     Ñ     Ñ     ú     ∏     ‘               (     H     h     à     ®     Ã               8     \     |     †     »     Ë               $     $     $     @     \     x     î   
-  ∞   
-  ∞   
-  ƒ     ÿ                     8     T     p     p     å     ®     ƒ     ‡     ¸          4     P     l     à     †     ∏     –     Ë                0     H     `     x     x     ê     ®     ¿     ÿ     ¯          4     4     P     l     Ñ     †     º   
-  ÿ   
-  ÿ   
-  ÿ     Ï            $      D      D      D      D      `      |      ò   
-   ∞   
-   ƒ                     
-   ÿ   
-   Ï   
-  !    
-  !   
-  !   
-  !(   
-  !(   
-  !<   
-  !<   
-  !<   
-  !<   
-  !P   
-  !d     !x     !î     !∞     !Ã     !Ë     "     "      "8   
-  "P   
-  "P     "d   
-  "|   
-  "|     "ê     "®     "¿     "ÿ     "ÿ     "     #     #$     #@     #`     #Ñ     #®     #Ã     #     $     $@     $h     $ê     $ê     $¥     $ÿ     $¸     %     %@   
-  %\   
-  %p   
-  %Ñ   
-  %ò   
-  %¨   
-  %¨   
-  %¨   
-  %¿   
-  %¿   
-  %¿   
-  %¿   
-  %¿   
-  %‘   
-  %Ë   
-  %¸   
-  &   
-  &$   
-  &$   
-  &$   
-  &8   
-  &8     &L     &d     &Ä     &ú     &º     &‹     '      '      '      '@     '`     'Ä     'ú   
-  '∏   
-  '∏   
-  'Ã                                                     '‡     '¯     (     (     ((     ((     ((     (@   
-  (X   
-  (l   
-  (Ä                                             
-  (î   
-  (®   
-  (º     (–     (Ë     )      )     )     )     )0     )H   
-  )`   
-  )`     )t     )å     )®     )ƒ     )‡     *      *$     *H     *h     *à     *®     *»     *Ï     +     +0     +P     +l     +à     +§     +º     +‘     +Ï     ,     ,$     ,@     ,\     ,|     ,ò     ,¥     ,Ã     ,‰     ,¸     -     -,     -D     -\     -t     -å     -§     -¿     -‹     -¸     .     .<     .`     .Ä     .†     .¿     .‡     .¯     /     /0     /L     /h     /Ñ     /§     /ƒ     /‰     0     0(     0L     0l     0à     0§     0§     0º     0‘   
-  0Ï     1      1     14     14     1L     1h     1Ñ     1†     1º     1ÿ     1Ù     2     2,     2H     2H     2`     2x     2î     2¥     2‹     3     3,     3P     3t     3ò     3∏     3‘     3Ù     4     44     4T     4t     4ê     4¨     4»     4‰     5      5     58     5T     5p     5å   
-  5§   
-  5§   
-  5∏   
-  5∏   
-  5Ã   
-  5‡   
-  5Ù   
-  6   
-  6     60     6H     6`     6|     6ò     6¥     6‘     6¯     7     7<     7\     7|     7ò   
-  7∞                                       
-  7ƒ     7ÿ     7     8     8      8      8      8      8      8      88   
-  8P   
-  8P     8d     8|     8î     8∞     8»     8‡     8¯     9     98     9T     9t     9î     9∏     9‹     :      :      :      :@     :`     :Ä     :ú     :∏     :‘     :‘     :Ï     :Ï     ;     ;      ;<     ;X     ;t     ;ê     ;¨     ;»     ;Ë     ;Ë     <     <(     <D     <d     <Ñ     <®     <»     <Ë     =     =0     =P     =p     =ê     =∞     =∞     =∞     =Ã     =Ë     >     >      >8   
-  >P     >d   
-  >|   
-  >ê   
-  >ê   
-  >ê   
-  >ê   
-  >ê   
-  >ê   
-  >ê   
-  >§   
-  >∏   
-  >Ã     >‡     >¯     ?     ?,     ?L     ?l     ?l     ?à     ?§     ?§     ?¿     ?‹     ?¯     @     @,     @D     @D   
-  @\   
-  @p   
-  @Ñ                                                         
-  @ò   
-  @¨   
-  @¿   
-  @‘   
-  @Ë   
-  @¸   
-  @¸   
-  @¸   
-  @¸   
-  @¸   
-  @¸   
-  A   
-  A$   
-  A8   
-  AL   
-  A`                                 
-  At   
-  Aà   
-  Aà     Aú     A¥     A¥     AÃ     A‰     A˛     B   	  B*   	  B*   	  B*   	  B*   	  B<   	  B<     BN   
-  Bd   
-  Bx   
-  Bx   
-  Bx     Bå     B§     Bº     B‘     B‘     BÏ     C   
-  C   
-  C     C0     CH     C`     Cx   
-  Cê   
-  Cê   
-  Cê   
-  Cê     C§     Cº     C‘     CÏ     D     D   
-  D4   
-  D4     DH     DH     D`     Dx     Dê     D®   
-  D¿   
-  D‘     DË     E    
-  E     E,     ED     E`     EÄ     E†     E†     E¿     E‡     E‡     F      F      F<     FX   
-  Fp   
-  FÑ   
-  Fò   
-  Fò   
-  Fò   
-  Fò   
-  Fò   
-  Fò     F¨     F¨     Fƒ     Fƒ     F‹     FÙ     G     G,     GD     G`     G`     Gx     Gx     Gê     Gê     Gê     G®   
-  G¿   
-  G‘   
-  GË   
-  G¸   
-  H   
-  H     H$     H<     HT     Hp     Hå     H®     Hƒ     H‡     I      I      I<     I\     I|     Iú     I∏     I‘     I  ˇú       &@@ Ø@ ë@ h  ˇú       &@@ Æ@ è@	 g  ˇú       &@@ Æ@ á@ f  ˇú       &@@ Æ@ á@ e  ˇú       '@@ ≠@
- à@ d  ˇú       (@	@ ¨@
- à@ d  ˇú      x@ µ@ ≠@	 à@ d  ˇú      w@
- ¥@ Æ@ à@ d  ˇú      w@
- ¥@>@ c  ˇú      w@ ≥@>@ c  ˇú      w@ ≥@?@ c  ˇú      w@ ≥@B@ c  ˇú      w@ ≥@C@ c  ˇú      w@ ¥@C@ d  ˇú      x@	 µ@D@ f  ˇú      x@ ∂@E@
- g  ˇú      6@I@ h  ˇú 
-   
-  6@∏  ˇú 
-   
-  6@π c ˇú         ˇú 
-   
-  @‰  ˇú       õ@ u@„  ˇú       ò@	 t@„  ˇú       ó@
- t@„  ˇú       ó@
- t@ í@J  ˇú       @ Ñ@
- u@ í@	H  ˇú       @ Ñ@
- u@ ë@
-H  ˇú       @	 É@
- u@ ë@
-H  ˇú       @	 É@
-@
-H  ˇú       @	 Ü@@
-H  ˇú       @	ö@
-@:  ˇú       @	ö@
-@9  ˇú       @	õ@	@9  ˇú       @û@@9  ˇú 
-   
-  ø@9  ˇú 
-   
-  ¿@9  ˇú 
-   
-  ¡@9  ˇú 
-   
-   È@  ˇú 
-   
-   Ë@  ˇú 
-   
-   „@  ˇú 
-   
-   ‚@  ˇú 
-   
-   ·@  ˇú 
-   
-   ·@  ˇú 
-   
-   ‡@  ˇú       ‡@?@ «  ˇú       ‡@>@ «  ˇú       ‡@=@ ≈  ˇú       ‡@=@ ó@ (  ˇú       ‡@>@
- ñ@ '  ˇú       ‡@@@	 ï@ #  ˇú       ‡@@@ í@ #  ˇú       ·@C@ í@ "  ˇú       ‚@⁄@ !  ˇú       „@ è@F@ !  ˇú       „@ è@D@    ˇú       ‰@ è@	C@    ˇú       ‰@	 ë@	B@    ˇú       ‰@ ì@	A@    ˇú      ~@	A@    ˇú      @A@ !  ˇú 
-   
-  »@ !  ˇú 
-   
-  »@ "  ˇú 
-   
-  »@ $  ˇú 
-   
-  …@ &  ˇú 
-   
-   @ (  ˇú      À@ @   ˇú      Œ@ @  	 ˇú 
-   
-  Â@
-   ˇú 
-   
-  Á@   ˇú 	   	  ˝@  ˇú 	   	  ¯@  ˇú      x@
-v@  ˇú      x@u@  ˇú      x@t@  ˇú      w@t@  ˇú      w@ J@%@  ˇú      w@ I@%@  ˇú      x@ H@-  ˇú      z@ I@-  ˇú       ¨@@-  ˇú       ´@@-  ˇú       ©@
-@-  ˇú       ®@@-  ˇú       ®@@-  ˇú 
-   
-   ß@M  ˇú       ®@>@  ˇú       ®@
->@  ˇú 
-   
-  @ ˝  ˇú 
-   
-  Ì@ ¸  ˇú 
-   
-  Î@ ˚  ˇú 
-   
-  Î@ ˙  ˇú 
-   
-  Î@ ˘  ˇú 
-   
-  Î@ ¯  ˇú      ¨@:@ ˜  ˇú      ™@	8@ ˜  ˇú      ™@
-8@ ˜  ˇú      ©@5@ ˜  ˇú      ©@4@ ˜  ˇú      ©@3@ ˆ  ˇú      ©@2@ ˆ  ˇú      ©@4@ ˆ  ˇú      ©@4@ @	 n  ˇú      ™@4@ }@ k  ˇú      ™@5@ |@ j  ˇú      ´@6@ {@ j  ˇú      ¨@7@ |@ j  ˇú      ¨@8@ @ j  ˇú      ≠@=@ @ j  ˇú      @ Å@ i  ˇú      @ á@ h  ˇú      ı@ á@ h  ˇú 
-   
-  Ñ@ h  ˇú 
-   
-  Ñ@ i  ˇú        @µ@ j  ˇú       …@µ@ k  ˇú       …@∂@ k  ˇú       …@∑@ m  ˇú       …@ª@ o  ˇú 
-   
-   …@/  ˇú       …@P@	 ÷  ˇú        @P@ ‘  ˇú 
-   
-  @ ”  ˇú 
-   
-  @ “  ˇú 
-   
-   @ “  ˇú 
-   
-  !@ “  ˇú      ⁄@ @@ “  ˇú      Ÿ@	 @@ ”  ˇú      ÿ@
- A@
- ”  ˇú 
-   
-  ÿ@  ˇú 
-   
-  Ÿ@
-  ˇú       @“@
-  ˇú       ¸@“@
-  ˇú       ¸@–@  ˇú 
-   
-   ¸@ˆ  ˇú       ˚@ @ +@©  ˇú       ˙@ @ (@ß  ˇú       ˙@ @ (@	•  ˇú       ˙@ @ '@§  ˇú       ˙@ @ &@£  ˇú       ˙@ @ %@¢  ˇú       ˚@ @ %@¢  ˇú       ˙@ @ %@¢  ˇú       ˙@ @ %@¢  ˇú       ˙@ @ &@°  ˇú       ˙@ @ &@°  ˇú       g@ ç@ @
- (@°  ˇú       f@ é@ !@ )@û  ˇú       e@	 Â@ù  ˇú       e@	 Â@ú  ˇú       e@	 Ë@ú  ˇú       e@	 Ë@@ â  ˇú       e@	 Ë@
-@	 â  ˇú       f@ Ë@
-@	 â  ˇú       g@ ≈@ @
-@
- à  ˇú      1@	 @
-@
- à  ˇú      /@ @
-@
- à  ˇú      .@ @
-@
- à  ˇú      -@ @@
- à  ˇú      -@ @@	 à  ˇú      -@ @@ à  ˇú      -@4@ à  ˇú      -@5@ à  ˇú 
-   
-  -@√  ˇú 
-   
-  /@ƒ  ˇú      /@£@  ˇú      0@	•@	  ˇú      0@ß@  ˇú      0@®@ Æ@ c  ˇú      ›@ ¨@ c  ˇú      ‹@ ¨@ b  ˇú      °@ 4@ ¨@ b  ˇú      †@
- 2@ ¨@ b  ˇú      †@ 1@ ¨@ b  ˇú      ü@ 0@ ¨@ b  ˇú      ü@ 1@ ¨@ c  ˇú      ü@ 1@  ˇú      ü@ 3@
-  ˇú      ü@ 4@  ˇú 
-   
-  ü@V  ˇú 
-   
-  °@	V  ˇú 
-   
-   r@Ü  ˇú 
-   
-   q@	Ü  ˇú       q@	 ‹@£  ˇú       q@	 ‹@¢  ˇú       r@ ‹@¢  ˇú 
-   
-  V@¢  ˇú      V@ ˙@	ü  ˇú 
-   
-  X@
-û  ˇú 
-   
-  W@ù  ˇú 
-   
-  W@ú  ˇú      X@ ñ@ ˇ  ˇú      X@ ï@ ˇ  ˇú       ∞@°@
- ñ@	 ˛  ˇú       ∞@°@
- ï@
- ˛  ˇú       ∞@¢@	 ï@
- ˛  ˇú       ∞@@@
- ˛  ˇú       ±@B@	 ˛  ˇú 
-   
-  ˙@  ˇú 
-   
-  ¶@	 Q  ˇú 
-   
-  ¶@
- P  ˇú 
-   
-  ¶@	 Q  ˇú 
-   
-  ß@ R  ˇú 
-   
-  2@∆  ˇú 
-   
-  2@	≈  ˇú      2@	 ä@
-1  ˇú      3@ â@1  ˇú 
-   
-  ƒ@0  ˇú      ò@	#@0  ˇú      ó@"@/  ˇú       é@@"@.  ˇú       ç@
- @ }@ †@.  ˇú       å@ ˇ@ }@ û@.  ˇú       å@ ˇ@ |@	 ù@.  ˇú       å@ ˇ@ z@ ú@.  ˇú       å@ @
- z@ ù@.  ˇú       å@ @
- z@ û@/  ˇú       å@ @
- z@ ü@	0  ˇú       å@ |@ Ä@ {@ÿ  ˇú       å@ |@@ÿ  ˇú       ç@
- |@	@
-ÿ  ˇú       é@ }@	@
-ÿ  ˇú      @	@Ÿ  ˇú 
-   
-  @	‰  ˇú 
-   
-  @‰  ˇú 
-   
-  @Â  ˇú 
-   
-  @Ú  ˇú 
-   
-  @Ú  ˇú 
-   
-  @Ò  ˇú 
-   
-  @  ˇú       @ ã@ î@∆  ˇú       @ ä@ ê@	ƒ  ˇú       0@ À@ ä@ ê@	ƒ  ˇú       /@  @ â@ ê@	ƒ  ˇú       -@ ∆@ â@ ê@	ƒ  ˇú       ,@ ∆@ â@ ê@	ƒ  ˇú       +@ ≈@ ä@ ê@	ƒ  ˇú       *@ ≈@ ã@ ë@	ƒ  ˇú       *@ ≈@!@	ƒ  ˇú       *@ ƒ@"@ƒ  ˇú       *@ ≈@#@≈  ˇú       *@ ƒ@Ô  ˇú       *@ ƒ@  ˇú       *@ ≈@Ú  ˇú 
-   
-   *@¬  ˇú       *@Ø@   ˇú       *@≠@ 
-  ˇú       *@≠@   ˇú       *@¨@   ˇú       +@¨@   ˇú       ,@¨@   ˇú       -@Ø@   ˇú       /@
-∞@   ˇú      ê@S@   ˇú       f@#@S@   ˇú       e@"@S@   ˇú       c@!@	Q@   ˇú       b@ @O@   ˇú       b@ @O@   ˇú       a@@ ˝@K@   ˇú       a@@ ˝@	J@   ˇú       a@@ ˝@	K@   ˇú       a@@ ˚@	P@ 	  ˇú       a@@ ˚@	 D@ V@ π  ˇú       a@@ ˙@	 D@ Q@
- π  ˇú       a@@ ˙@	 D@ Q@ ∏  ˇú       a@!@ ˙@	 D@ Q@ ∏  ˇú       b@!@ ˚@ E@ Q@ ∏  ˇú       b@"@G@ Q@ ∏  ˇú       c@#@G@ Q@ õ@   ˇú       e@ ˚@ #@A@ Q@
- õ@	   ˇú      g@
- "@ô@
- õ@   ˇú      g@ !@ú@ õ@   ˇú      g@ @>@   ˇú      g@ @=@   ˇú      g@ #@=@   ˇú      g@ #@<@   ˇú      h@ #@;@   ˇú      i@	 %@:@	   ˇú 
-   
-  ò@V  ˇú 
-   
-  ô@U  ˇú      ô@e@ Á  ˇú      ö@c@ Á  ˇú      ö@b@	 Á  ˇú      ö@b@
- Ê  ˇú      ö@ È@ r@
- Ê  ˇú      õ@ Á@ o@
- Ê  ˇú      õ@ Ê@ o@
- Ê  ˇú      ú@ Ê@ o@	 Á  ˇú      ú@ Â@ o@ Á  ˇú      û@ Â@ p@ Ë  ˇú       …@ —@ Â@^  ˇú       «@ —@ ‰@^  ˇú       ∆@	 —@ ‚@^  ˇú       ∆@
- —@ ‚@^  ˇú       ∆@
- —@ „@_  ˇú       ∆@
- “@ „@
-`  ˇú       ∆@
- “@M  ˇú       ∆@
- ‘@M  ˇú       «@	 ’@M  ˇú       «@ ◊@M  ˇú      ¶@æ@
- Ö  ˇú      ß@Ω@ Ñ  ˇú      ß@º@ Ñ  ˇú      ®@º@ Ñ  ˇú      ®@∫@ É  ˇú      ´@∫@ É  ˇú      ¨@∏@ É  ˇú      ¨@π@ É  ˇú      ¨@π@ Ñ  ˇú      ≠@π@ Ñ  ˇú       7@p@
-r@ A@
- Ñ  ˇú       6@p@
-q@ A@ Ü  ˇú       6@	o@t@
- Œ  ˇú       6@	o@t@ Õ  ˇú       6@	p@t@ Õ  ˇú       6@	È@ Õ  ˇú       7@J@ò@ Õ  ˇú       7@J@ò@	 Œ  ˇú       9@K@ò@ œ  ˇú 
-   
-  â@o  ˇú      C@ ?@o  ˇú       @	@	 >@2@5  ˇú       @	@ >@2@5  ˇú       @	@w@5  ˇú       @@w@5  ˇú       @@w@6  ˇú       @@
-¥  ˇú 
-   
-  C@	¥  ˇú 
-   
-  F@µ  ˇú 
-   
-  ù@^  ˇú 
-   
-  õ@Y  ˇú 
-   
-  õ@W  ˇú 
-   
-  ö@W  ˇú 
-   
-  ô@V  ˇú 
-   
-  ò@U  ˇú 
-   
-  ò@T  ˇú 
-   
-  ô@T  ˇú       ¢@@ »@T  ˇú       ¢@	@	 «@T  ˇú       ¢@	@
- «@T  ˇú       ¢@	@ »@U  ˇú       ¢@	@ …@W  ˇú       ¢@	@  @W  ˇú       ¢@	@-  ˇú       £@@
--  ˇú 
-   
-  …@
--  ˇú      À@‚@ G  ˇú 
-   
-  Æ@ A  ˇú       ´@¸@ A  ˇú       ™@¯@ A  ˇú       ™@	˜@ @  ˇú       ™@
-ˆ@ ?  ˇú       ™@
-ˆ@ >  ˇú       ™@
-8@∂@ >  ˇú       ™@
-7@	∂@ >  ˇú       =@ a@
-7@
-µ@ >  ˇú       ;@ `@
-6@@ ö@ >  ˇú       ;@ a@	6@@	 ò@ >  ˇú       ;@ a@8@@ ó@ >  ˇú       ;@ü@@ ó@ $@   ˇú       :@ 	@	ç@@ ó@ #@
-   ˇú       :@ @ç@@ ó@ "@   ˇú       :@ @ç@@ ô@ "@   ˇú       :@ @ç@
-@ ô@ "@   ˇú       :@ @™@ ô@ #@   ˇú       :@ 	@
-´@
- ö@ %@
-   ˇú       :@ 	@
-¨@ ù@ %@
-   ˇú       ;@ 	@
-P@ (@
-   ˇú       ;@ 	@
-Q@ @ *@	   ˇú       <@ @ä@   ˇú 
-   
-   >@∑  ˇú 
-   
-   @@π  ˇú 
-   
-  3@∆  ˇú 
-   
-  0@≈  ˇú 
-   
-  0@√  ˇú 
-   
-  0@¬  ˇú 
-   
-  0@√  ˇú 
-   
-  1@ƒ  ˇú 
-   
-  2@	≈  ˇú 
-   
-  Ë@	   ˇú 
-   
-  Á@   ˇú 
-   
-  Á@   ˇú      j@	t@   ˇú      i@;@1@   ˇú      h@:@	/@   ˇú      h@ …@ h@	/@   ˇú      h@ …@ h@	0@
-   ˇú      h@ »@
- #@ <@	0@	   ˇú      h@ »@
- "@
- ;@	H  ˇú      h@ …@
- "@
- ;@	H  ˇú      h@  @
- "@
- ;@	H  ˇú      h@ À@
- "@
- <@J  ˇú      i@	 Ã@	 #@
-å  ˇú      i@ Œ@ #@
-å  ˇú 
-   
-  j@
-å  ˇú 
-   
-  k@ç  ˇú       H@ Î@¿  ˇú       G@	 Í@ø  ˇú       F@ È@ø  ˇú       F@ Ë@ø  ˇú       F@ È@ø  ˇú 
-   
-   F@Æ  ˇú 
-   
-   F@Ø  ˇú 
-   
-   G@
-Ø  ˇú 
-   
-  ‰@  ˇú 
-   
-  ‰@
-  ˇú 
-   
-  ‚@  ˇú      I@ ë@  ˇú      H@ ë@  ˇú      G@	 ê@  ˇú      G@	 ê@  ˇú      G@ ë@  ˇú      G@ í@  ˇú 
-   
-  ‡@  ˇú      
-@—@  ˇú      	@ @´@  ˇú      @	 @™@  ˇú      @ @
-™@  ˇú       ∞@ H@ @
-´@  ˇú       ∞@ G@ @¨@ ˜@   ˇú       ∞@
- @@! @≠@ ˜@   ˇú       ∞@ <@# @≤@   ˇú       ∞@ ;@$ @≤@   ˇú       ±@ 8@' @≤@   ˇú       ≤@
- 8@* 
-@≤@   ˇú       ≤@
- )@ @4 @≥@   ˇú       ≤@	 )@ @6 @≥@   ˇú       ≤@	 )@? @µ@   ˇú       ‰@@ @ @î@   ˇú       ‰@O @ë@   ˇú       ‰@O @í@
-   ˇú       ‰@Q @ì@   ˇú       ‰@Q @ß  ˇú       „@R @ß  ˇú       ‚@S @ß  ˇú       œ@ 	@W @¶  ˇú       Õ@ @W @¶  ˇú       Õ@ @V @¶  ˇú       Õ@ @U @¶  ˇú       Õ@ @U @ @¶  ˇú       Õ@f @ @¶  ˇú       Õ@f @
- @¶  ˇú       Œ@q @¶  ˇú       Œ@s @®  ˇú       œ@s ü@  ˇú       œ@s ù@  ˇú       œ@s ú@  ˇú       œ@s ú@  ˇú       ’@m ö@  ˇú       ◊@k ö@  ˇú       ÿ@j ö@  ˇú       ÿ@i õ@  ˇú       J@	 á@g õ@  ˇú       H@ Ü@g õ@  ˇú       E@ á@f &@ o@  ˇú       E@ á@f %@ n@  ˇú       C@ à@d %@ o@  ˇú       C@ á@\ @ %@ o@  ˇú       C@ á@d %@ p@  ˇú       B@ Ü@d %@ p@  ˇú       B@ Ü@d %@ q@  ˇú       B@ á@c %@ q@  ˇú       B@ á@_¬  ˇú       B@ á@_j@ S  ˇú       C@ á@_j@ Q  ˇú       C@ á@`h@ Q  ˇú       D@ à@bf@ Q  ˇú       D@ ä@ae@ Q  ˇú       D@ å@` N@@ Q  ˇú       E@ ç@_ N@@ Q  ˇú       E@ é@_ L@@ R  ˇú       F@ á@ @c .@ @	g  ˇú       G@ ä@j +@	 @	g  ˇú       I@
- Ñ@ @j +@	 @	g  ˇú       J@ Ñ@s *@	 @	g  ˇú       ÷@s *@	 @g  ˇú       ÷@t )@	 @h  ˇú       ÷@t )@	Ñ  ˇú       ◊@s )@	Ñ  ˇú       ÿ@r *@Ñ  ˇú 
-   
-   Ÿ@q∂  ˇú       ”@ @oµ  ˇú       ”@ @oë@  ˇú       ”@xè@  ˇú       ”@x ò@ Ò@  ˇú       ”@w ô@ @  ˇú       ‘@z ï@	 Ó@  ˇú       ÷@x ï@	 @  ˇú       €@s ï@	 @  ˇú       €@s ï@	 @  ˇú       €@s ï@	 Ò@  ˇú       €@r ñ@	 Û@  ˇú       €@r ò@ Ù@  ˇú       €@pñ@  ˇú       €@pó@  ˇú       €@jù@ @ ˚  ˇú       ú@
- 7@gû@ @ ˙  ˇú       É@ @ 8@e@	 @ @ ˙  ˇú       Å@ @ 8@f}@ @ @ ˙  ˇú       @ @ 8@g|@ @
- @ ˙  ˇú       @ @ 8@h{@ 1@ ˙  ˇú       @ @ 8@iz@ 1@ ˙  ˇú       @ @ @@ez@ 1@ ˙  ˇú       @ R@hw@ 1@ ˙  ˇú       @ R@hw@2  ˇú       @ R@hw@ w@ ∂  ˇú       ~@ M@mw@ t@	 µ  ˇú       ~@ M@mw@ r@ ¥  ˇú       ~@ N@mx@
- s@ ≥  ˇú       ~@ N@lz@ t@ ≤  ˇú       ~@ N@mÙ@ ≤  ˇú       @ N@mÙ@ ≤  ˇú       Ä@ O@rÔ@ ≤  ˇú       Å@ P@rÔ@ ≤  ˇú       Ñ@	 R@uÎ@ ≤  ˇú       ‡@tÎ@ ≤  ˇú       ‡@Z @	 @Î@ ≥  ˇú       Ê@V 
-@Ï@ ¥  ˇú       Ê@V @
-Ï@ ¥  ˇú       È@S @Ì@
- µ  ˇú       È@S @¨  ˇú 
-   
-   È@Sƒ  ˇú 
-   
-   Í@Q≈  ˇú 
-   
-   Í@L   ˇú 
-   
-   È@M   ˇú 
-   
-   Ë@N   ˇú 
-   
-   Á@O   ˇú 
-   
-   Á@NÀ  ˇú       Á@ 
-@7Õ  ˇú       Á@
- @6Õ  ˇú       Ç@	 \@	 @-”  ˇú       Ç@
- [@	 @,‘  ˇú       Ç@
- [@	 @(‘  ˇú       Ç@
- [@ @ @Ÿ  ˇú       Ç@
- [@ @ @⁄@ ˘  ˇú       Ç@
- [@ @	 @ÿ@ ¯  ˇú       Ç@
- â@
- @ÿ@ ¯  ˇú       Ç@	 å@ @ÿ@ ¯  ˇú       É@ è@ @ÿ@ ¯  ˇú      @ @ÿ@ ¯  ˇú      "@ÿ@ ¯  ˇú 
-   
-  @ ¯  ˇú 
-   
-  ¬@8  ˇú      ¡@	 ˇ@2  ˇú      ¡@
- ˚@	1  ˇú      ¡@
- ˚@/  ˇú      ¡@
- ˘@.  ˇú      ¬@ ˚@.  ˇú 
-   
-  ≈@.  ˇú      H@ v@.  ˇú      G@	 u@/  ˇú       Ä@ø@	 v@/  ˇú       @
-æ@	∞  ˇú       @Ω@	∞  ˇú       ~@Ω@	∞  ˇú       ~@ Ç@	2@	 M@[  ˇú       ~@ Ä@2@ N@Y  ˇú       ~@ @Ö@X  ˇú       ~@ @ N@.@X  ˇú       @ @ M@	-@X  ˇú       @ @ M@	-@@ 4  ˇú       @
- Ä@ M@	-@@ 3  ˇú       Å@ Å@ M@	-@@ 3  ˇú      	@ M@	-@@ 3  ˇú      	@ N@	-@@ 3  ˇú      	@ O@	.@@ 3  ˇú      	@ P@.@@ 3  ˇú      	@@ h@
-Y  ˇú      @@ h@[  ˇú       (@ ﬁ@@   ˇú       '@	ˆ@…  ˇú       '@	Ú@»  ˇú       '@	·@ @»  ˇú       '@	‡@ @«  ˇú       '@	ﬂ@
- 	@«  ˇú       (@ﬂ@
- 	@«  ˇú       )@‡@
- 	@«  ˇú      @
- 	@ Ç@?  ˇú      @
- 	@ Å@
-<  ˇú      @
- 	@ /@ K@;  ˇú      @	 	@ /@ J@;  ˇú      @ 
-@ /@ J@;  ˇú      "@ /@ J@;  ˇú       S@»@ 0@ J@;  ˇú       R@	«@ 0@ J@;  ˇú       R@	»@ 1@ ?@ @;  ˇú       R@	»@ w@ @;  ˇú       R@	…@ w@	 @;  ˇú       Q@
- Ø@@ w@	 @
-<  ˇú       P@ ¨@@ w@	 @>  ˇú       P@ ´@@ w@	K  ˇú       O@ ´@ @	@	K  ˇú       O@ ®@ ~@	@K  ˇú       O@ ®@ ~@	@K  ˇú       O@ ®@ ~@	b  ˇú       O@ ™@ ~@	b  ˇú       P@ ´@ ~@	b  ˇú       P@ ¨@ Ä@b  ˇú       Q@	 Æ@Í  ˇú       R@ ∞@Î  ˇú 
-   
-  @	Ï  ˇú      @ H@	ü  ˇú 
-   
-  X@	ü  ˇú 
-   
-  X@
-û  ˇú 
-   
-  Y@ü  ˇú 
-   
-  ∆@5  ˇú 
-   
-  ≈@4  ˇú      ≠@
-@3  ˇú      ¨@@3  ˇú      †@ @@3  ˇú      û@
- @@ @)  ˇú      ù@ @@ @)  ˇú      ù@@ @
-(  ˇú      ù@@ @
-(  ˇú      7@ ^@@
-(  ˇú      7@ _@@
-(  ˇú      7@ `@@)  ˇú      7@ `@H  ˇú      7@ `@ @I  ˇú      8@ `@R  ˇú      9@ a@R  ˇú 
-   
-  †@R  ˇú 
-   
-  °@S  ˇú 
-   
-  ¢@
-T  ˇú 
-   
-  •@U  ˇú 
-   
-  §@	S  ˇú 
-   
-  §@Q  ˇú 
-   
-  £@Q  ˇú 
-   
-  £@P  ˇú 
-   
-  ¢@P  ˇú 
-   
-  £@P  ˇú 
-   
-  §@P  ˇú 
-   
-  •@
-Q  ˇú 
-   
-  ¶@	Q  ˇú 
-   
-  ¶@S  ˇú 
-   
-  ‘@%  ˇú 
-   
-  “@	%  ˇú      @Ø@	%  ˇú      @Ø@	%  ˇú      @Ø@&  ˇú      @@Ø@&  ˇú      @@›  ˇú      @@›  ˇú 	   	  @˙  ˇú 	   	  @˚  ˇú      @w@ ~  ˇú 
-   
-  y@
- }  ˇú 
-   
-  x@ }  ˇú      õ@	 ‘@ }  ˇú      õ@
- ”@ }  ˇú      õ@ “@ }  ˇú      ö@ “@ }  ˇú      ö@ ”@
- }  ˇú      ö@ ‘@   ˇú 
-   
-  ö@Z  ˇú       £@Ò@Z  ˇú       ¢@Ó@
-[  ˇú       °@Ó@	[  ˇú       †@@\  ˇú 
-   
-   †@Q  ˇú       °@!@(  ˇú       °@ @&  ˇú       ¢@@&  ˇú       ¢@@%  ˇú       £@ @%  ˇú       §@	!@%  ˇú 
-   
-  Œ@%  ˇú      Œ@ m@ ∞  ˇú      Œ@ l@
- Ø  ˇú      Œ@ m@
- Ø  ˇú      –@	 n@
- Ø  ˇú      “@ p@
- Ø  ˇú 
-   
-  G@
- Ø  ˇú 
-   
-  H@	 Ø  ˇú      R@	 Ì@	 Ø  ˇú      Q@ Ó@ Ø  ˇú 
-   
-  P@£  ˇú      O@8@ d  ˇú      >@ 	@6@	 b  ˇú      ,@ 
-@	 @6@	 b  ˇú      ,@	 	@	 @6@	 b  ˇú      +@
- 	@	 @6@	 b  ˇú      +@
- 	@	 @7@	 b  ˇú      +@
- 	@ 
-@8@ b  ˇú      +@
- 
-@ @9@ b  ˇú      0@ ı@	 @£  ˇú      -@ Ú@	 @
-§  ˇú      ,@ ˆ@À  ˇú 
-   
-  ,@≈  ˇú 
-   
-  +@≈  ˇú 
-   
-  +@ƒ  ˇú      +@ @¥  ˇú      ,@ 	@¥  ˇú      -@ 	@¥  ˇú      /@
- @ á@	$  ˇú      0@ @ Ö@$  ˇú      E@ Ñ@#  ˇú      E@ c@ @#  ˇú      Æ@	 @#  ˇú      ≠@
- @#  ˇú      ≠@
- @$  ˇú      ≠@
- @
-&  ˇú 
-   
-  Æ@J  ˇú 
-   
-  Ø@J  ˇú 
-   
-  ,@ Œ  ˇú 
-   
-  +@ Õ  ˇú 
-   
-  *@ À  ˇú       ¡@
-_@    ˇú       ¡@^@    ˇú       ¡@Å@ ◊@    ˇú       ¡@@ ÷@    ˇú       ¿@~@ ”@    ˇú       ¿@}@ ”@    ˇú       ¿@}@ ‘@    ˇú       ¿@ |@ ˚@ ’@	 À  ˇú       ¿@ x@
- ˚@ ÷@ Õ  ˇú       ¿@ w@ ˙@©  ˇú       ¡@ w@ !@ ”@©  ˇú       ¡@ w@ !@ —@©  ˇú       ¬@
- x@  @ —@©  ˇú      D@ @ –@©  ˇú      E@ @ –@™  ˇú      E@ @ —@	´  ˇú      E@ @Ö                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
