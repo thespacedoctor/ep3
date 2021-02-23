@@ -144,6 +144,11 @@ class export_ssdr(object):
         """
         self.log.debug('starting the ``export`` method')
 
+        if self.ssdr != "all":
+            data_rel = f" and data_rel = 'SSDR{self.ssdr}'"
+        else:
+            data_rel = ""
+
         exportDict = {}
         if self.instrument is False or self.instrument == "efosc":
             # NEED TO EXPLICATELY ASK FOR EFOSC IMAGING
@@ -156,35 +161,38 @@ class export_ssdr(object):
                 return
             if self.fileType == "spec1d":
                 exportDict[
-                    "efosc_spec1d"] = f"select archivePath, filename, exportFilename from view_ssdr_supplimentary_efosc_spectra_1d where exportFilename is not null and data_rel = 'SSDR{self.ssdr}'"
+                    "efosc_spec1d"] = f"select archivePath, filename, exportFilename from view_ssdr_supplimentary_efosc_spectra_1d where exportFilename is not null {data_rel}"
             if self.fileType is False or self.fileType == "spec2d":
                 exportDict[
-                    "efosc_spec2d"] = f"select archivePath, filename, exportFilename from view_ssdr_efosc_spectra_2d where exportFilename is not null and data_rel = 'SSDR{self.ssdr}'"
+                    "efosc_spec2d"] = f"select archivePath, filename, exportFilename from view_ssdr_efosc_spectra_2d where exportFilename is not null {data_rel}"
             if self.fileType is False or self.fileType == "bintable":
                 exportDict[
-                    "efosc_specbin"] = f"select archivePath, filename, exportFilename from view_ssdr_efosc_spectra_binary_tables where exportFilename is not null and data_rel = 'SSDR{self.ssdr}'"
+                    "efosc_specbin"] = f"select archivePath, filename, exportFilename from view_ssdr_efosc_spectra_binary_tables where exportFilename is not null {data_rel}"
 
         if self.instrument is False or self.instrument == "sofi":
             # NEED TO EXPLICATELY ASK FOR EFOSC IMAGING
             if self.fileType is False or self.fileType == "image":
                 exportDict[
-                    "sofi_images"] = f"select archivePath, filename, exportFilename from view_ssdr_sofi_imaging where exportFilename is not null and data_rel = 'SSDR{self.ssdr}'"
+                    "sofi_images"] = f"select archivePath, filename, exportFilename from view_ssdr_sofi_imaging where exportFilename is not null {data_rel}"
             if self.fileType is False or self.fileType == "weight":
                 exportDict[
-                    "sofi_weights"] = f"select archivePath, filename, exportFilename from view_ssdr_sofi_imaging_weights where exportFilename is not null and data_rel = 'SSDR{self.ssdr}'"
+                    "sofi_weights"] = f"select archivePath, filename, exportFilename from view_ssdr_sofi_imaging_weights where exportFilename is not null {data_rel}"
             if self.fileType == "spec1d":
                 exportDict[
-                    "sofi_spec1d"] = f"select archivePath, filename, exportFilename from view_ssdr_supplimentary_sofi_spectra_1d where exportFilename is not null and data_rel = 'SSDR{self.ssdr}'"
+                    "sofi_spec1d"] = f"select archivePath, filename, exportFilename from view_ssdr_supplimentary_sofi_spectra_1d where exportFilename is not null {data_rel}"
             if self.fileType is False or self.fileType == "spec2d":
                 exportDict[
-                    "sofi_spec2d"] = f"select archivePath, filename, exportFilename from view_ssdr_sofi_spectra_2d where exportFilename is not null and data_rel = 'SSDR{self.ssdr}'"
+                    "sofi_spec2d"] = f"select archivePath, filename, exportFilename from view_ssdr_sofi_spectra_2d where exportFilename is not null {data_rel}"
             if self.fileType is False or self.fileType == "bintable":
                 exportDict[
-                    "sofi_specbin"] = f"select archivePath, filename, exportFilename from view_ssdr_sofi_spectra_binary_tables where exportFilename is not null and data_rel = 'SSDR{self.ssdr}'"
+                    "sofi_specbin"] = f"select archivePath, filename, exportFilename from view_ssdr_sofi_spectra_binary_tables where exportFilename is not null {data_rel}"
 
         # RUN THE QUERIES AND COPY FILES TO EXPORT LOCATION
         for path, sqlQuery in exportDict.items():
-            exportPath = self.exportPath + f"/ssdr{self.ssdr}/" + path.replace("_", "/")
+            if self.ssdr == "all":
+                exportPath = self.exportPath + f"/ssdr_{self.ssdr}/" + path.replace("_", "/")
+            else:
+                exportPath = self.exportPath + f"/ssdr{self.ssdr}/" + path.replace("_", "/")
             # RECURSIVELY CREATE MISSING DIRECTORIES
             if not os.path.exists(exportPath):
                 os.makedirs(exportPath)

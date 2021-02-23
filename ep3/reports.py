@@ -228,6 +228,17 @@ def object_spectra_breakdowns(
     )
     sofiSpecCount = rows[0]["count"]
 
+    # COUNT SOFI IMAGING
+    sqlQuery = f"""
+        select count(*) as count from view_ssdr_sofi_imaging
+    """
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
+    )
+    sofiImageCount = rows[0]["count"]
+
     followupObjects = len(csvEntries)
 
     snCount = 0
@@ -265,10 +276,6 @@ def object_spectra_breakdowns(
             unknownCount += 1
         elif c["Type"] not in uncounted:
             uncounted.append(c["Type"])
-    print(f"""From this list, {snCount} supernovae ({slsnCount} of which are super-luminous supernovae), {impostCount} supernova imposters, {tdeCount} tidal disruption events, {unknownCount} unclassified objects, {agnCount} AGN, {novaCount} galactic novae, {starCount} variable stars, {frbCount} FRB and {knCount} kilonova were picked as interesting science targets and these were scheduled for follow-up time series EFOSC2 optical spectroscopy, with the brightest also having SOFI spectra. A summary of these {followupObjects} PESSTO Key Science targets and the spectral data sets taken is given in Table 3. The total number of spectra released for these {followupObjects} "PESSTO Key Science" targets are {efoscSpecFollowCount} EFOSC2 spectra and {sofiSpecFollowCount} SOFI spectra (a total of {sofiSpecFollowCount+efoscSpecFollowCount}). These EFOSC2 numbers include the first classification spectra taken.  """)
-
-    if len(uncounted):
-        print(f"You have forgotten to include the {uncounted} objects in source type breakdown")
 
     dataSet = list_of_dictionaries(
         log=log,
@@ -282,6 +289,68 @@ def object_spectra_breakdowns(
     print("CSV version of this table can be found at '/tmp/table3.csv'. Import it into an excel worksheet and add to the release description")
 
     print("\n\n")
+
+    table4 = []
+    table4.append({
+        "File Type": "EFOSC2 1D spectra",
+        "Format": "Binary Table format",
+        "Number of Files": efoscSpecCount,
+        "Data Volume": "xxx"
+    })
+    table4.append({
+        "File Type": "EFOSC2 2D spectral images",
+        "Format": "FITS image",
+        "Number of Files": efoscSpecCount,
+        "Data Volume": "xxx"
+    })
+    table4.append({
+        "File Type": "SOFI 1D spectra",
+        "Format": "Binary Table format",
+        "Number of Files": sofiSpecCount,
+        "Data Volume": "xxx"
+    })
+    table4.append({
+        "File Type": "SOFI 2D spectral images",
+        "Format": "FITS image",
+        "Number of Files": sofiSpecCount,
+        "Data Volume": "xxx"
+    })
+    table4.append({
+        "File Type": "SOFI images",
+        "Format": "FITS image",
+        "Number of Files": sofiImageCount,
+        "Data Volume": "xxx"
+    })
+    table4.append({
+        "File Type": "SOFI image weights",
+        "Format": "FITS image",
+        "Number of Files": sofiImageCount,
+        "Data Volume": "xxx"
+    })
+    table4.append({
+        "File Type": "TOTAL",
+        "Format": "",
+        "Number of Files": sofiImageCount * 2 + sofiSpecCount * 2 + efoscSpecCount * 2,
+        "Data Volume": "xxx"
+    })
+
+    dataSet = list_of_dictionaries(
+        log=log,
+        listOfDictionaries=table4
+    )
+    originalList = dataSet.list
+    csvData = dataSet.csv(filepath="/tmp/table4.csv")
+    tableData = dataSet.table(filepath=None)
+
+    print(tableData)
+
+    print("CSV version of this table can be found at '/tmp/table4.csv'. Import it into an excel worksheet and add to the release description")
+
+    print("\n\n")
+
+    if len(uncounted):
+        print(f"You have forgotten to include the {uncounted} objects in source type breakdown")
+        print("\n\n")
 
     # GET DISTINCT OBJECT COUNT
     sqlQuery = f"""
@@ -297,6 +366,8 @@ select distinct transientBucketId from view_ssdr_sofi_spectra_binary_tables) as 
     )
     allObjects = rows[0]["objects"]
     print(f"PESSTO has taken spectra of {allObjects} distinct objects")
+
+    print(f"""From this list, {snCount} supernovae ({slsnCount} of which are super-luminous supernovae), {impostCount} supernova imposters, {tdeCount} tidal disruption events, {unknownCount} unclassified objects, {agnCount} AGN, {novaCount} galactic novae, {starCount} variable stars, {frbCount} FRB and {knCount} kilonova were picked as interesting science targets and these were scheduled for follow-up time series EFOSC2 optical spectroscopy, with the brightest also having SOFI spectra. A summary of these {followupObjects} PESSTO Key Science targets and the spectral data sets taken is given in Table 3. The total number of spectra released for these {followupObjects} "PESSTO Key Science" targets are {efoscSpecFollowCount} EFOSC2 spectra and {sofiSpecFollowCount} SOFI spectra (a total of {sofiSpecFollowCount+efoscSpecFollowCount}). These EFOSC2 numbers include the first classification spectra taken.  """)
 
     print(f"In total the SSDRXX contains XXXGB of data and the numbers of images and spectra are given in Table 4. In total there are {efoscSpecCount} EFOSC2 spectra released. These include the {efoscSpecFollowCount} EFOSC2 spectra of  Table 3. The remaining {efoscSpecCount-efoscSpecFollowCount} EFOSC spectra relate to {allObjects-followupObjects} objects for which we took spectra but did not pursue a detailed followup campaign.")
 
