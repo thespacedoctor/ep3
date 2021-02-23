@@ -187,6 +187,11 @@ def object_spectra_breakdowns(
                 "Comments": ref
             })
 
+    snCount = 0
+    for c in csvEntries:
+        if c["Type"][:2] == "SN ":
+            snCount += 1
+
     dataSet = list_of_dictionaries(
         log=log,
         listOfDictionaries=csvEntries,

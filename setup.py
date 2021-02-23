@@ -18,7 +18,8 @@ install_requires = [
     'astropy',
     'ccdproc',
     'pandas',
-    'hmpty'
+    'hmpty',
+    'xlrd'
 ]
 
 # READ THE DOCS SERVERS
