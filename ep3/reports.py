@@ -188,9 +188,16 @@ def object_spectra_breakdowns(
             })
 
     snCount = 0
+    slsnCount = 0
     for c in csvEntries:
-        if c["Type"][:2] == "SN ":
+        if c["Type"][:3] in = "SN ":
             snCount += 1
+        elif c["Type"][:3] in = "SLS":
+            snCount += 1
+            slsnCount += 1
+        elif c["Type"] not in uncounted:
+            uncounted.append(c["Type"])
+    print(uncounted)
 
     dataSet = list_of_dictionaries(
         log=log,
