@@ -82,6 +82,7 @@ class utKit(utKit):
         """
         from fundamentals.mysql import directory_script_runner
         from fundamentals import tools
+
         packageDirectory = self.get_project_root()
         su = tools(
             arguments={"settingsFile": packageDirectory +
@@ -93,6 +94,14 @@ class utKit(utKit):
             defaultSettingsFile=False
         )
         arguments, settings, log, dbConn = su.setup()
+
+        print(packageDirectory +
+              "/test_settings.yaml")
+        print(packageDirectory + "/tests/input")
+
+        import sys
+        sys.exit(0)
+
         directory_script_runner(
             log=log,
             pathToScriptDirectory=packageDirectory + "/tests/input",

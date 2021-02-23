@@ -57,13 +57,6 @@ class test_reports(unittest.TestCase):
             dbConn=dbConn
         )
 
-    def test_report_stats_function(self):
-        from ep3.reports import data_release_stats
-        data_release_stats(
-            log=log,
-            dbConn=dbConn
-        )
-
     def test_reports_function_exception(self):
 
         from ep3 import reports

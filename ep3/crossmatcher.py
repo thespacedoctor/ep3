@@ -325,7 +325,7 @@ class crossmatcher(object):
         if frameTypes and len(frameTypes) > 0:
             frameTypes = ('","').join(frameTypes)
             sqlQuery = f"""
-                SELECT `key` FROM pessto_phase_iii.filetype_key_calibration where `value` in ("{frameTypes}");
+                SELECT `key` FROM filetype_key_calibration where `value` in ("{frameTypes}");
             """
             rows = readquery(
                 log=self.log,

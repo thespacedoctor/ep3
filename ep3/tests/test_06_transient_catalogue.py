@@ -57,7 +57,7 @@ class test_transient_catalogue(unittest.TestCase):
         cat = transient_catalogue(
             log=log,
             dbConn=dbConn,
-            pathToOutput=pathToOutputDir + "/catalogues/PESSTO_TRAN_CAT.fits",
+            outputDirectory=pathToOutputDir + "/catalogues/PESSTO_TRAN_CAT.fits",
             settings=settings
         )
         cat.create()

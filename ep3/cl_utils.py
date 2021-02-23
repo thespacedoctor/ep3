@@ -265,11 +265,6 @@ def main(arguments=None):
             settings=settings,
             dbConn=dbConn
         )
-        from ep3.reports import data_release_stats
-        data_release_stats(
-            log=log,
-            dbConn=dbConn
-        )
 
     # CALL FUNCTIONS/OBJECTS
 
