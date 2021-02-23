@@ -101,12 +101,10 @@ class fits_writer(object):
         )
         cleaner.clean()
 
-        # FIRST WRITE THE FITS FRAMES
+        # # FIRST WRITE THE FITS FRAMES
         newFramePaths = []
         frameTypes = ["spec1D", "spec2D", "weight", "image"]
         instrument = ["efosc", "sofi"]
-        # frameTypes = ["weight", "image"]
-        # instrument = ["sofi"]
         for i in instrument:
             for t in frameTypes:
                 # GENERARE THE PRIMARY HEADERS FOR ALL FRAMES NEEDING UPDATED
@@ -130,9 +128,16 @@ class fits_writer(object):
                 instrument, "bintable")
             primaryHeaderDict = {f: h for h, f in zip(hdrList, fitsPaths)}
 
+            if not len(hdrList):
+                continue
+
             # GRAB INFO NEEDED TO BUILD THE BINARY TABLES
             origFitsPaths, tableFitsPaths, fluxScalingFactors, fits_values, mysql_keywords, fits_keywords, fits_comments = self.get_binary_table_info_from_database(
                 instrument=instrument)
+
+            if len(fitsPaths) != len(tableFitsPaths):
+                message = "The number of extension is not matching the number of fits files to write"
+                raise AssertionError(message)
 
             binHduList = []
             dataDictList = []
@@ -144,7 +149,7 @@ class fits_writer(object):
                 zip(origFitsPaths, tableFitsPaths, fluxScalingFactors, fits_values)]
 
             filePaths = fmultiprocess(log=self.log, function=write_binary_table,
-                                      inputArray=dataDictList, poolSize=False, timeout=300, mysql_keywords=mysql_keywords,
+                                      inputArray=dataDictList, poolSize=False, timeout=3600, mysql_keywords=mysql_keywords,
                                       fits_keywords=fits_keywords,
                                       fits_comments=fits_comments)
             newTablePaths += filePaths
@@ -181,13 +186,12 @@ class fits_writer(object):
         mysql_keywords, fits_keywords, fits_comments, values = self.get_primary_header_keyword_values_from_database(
             instrument=instrument, frameType=frameType)
 
-        # GENERATE A FRESH HDR OBJECT
-        hdu = fits.PrimaryHDU()
-        hdr = hdu.header
+        if not len(mysql_keywords):
+            return [], []
 
         # POPULATE THE HEADERS
         hdrList = fmultiprocess(log=self.log, function=_generate_primary_fits_hdr,
-                                inputArray=list(values), poolSize=False, timeout=300, hdr=hdr, mysql_keywords=mysql_keywords,
+                                inputArray=list(values), poolSize=False, timeout=3600, mysql_keywords=mysql_keywords,
                                 fits_keywords=fits_keywords,
                                 fits_comments=fits_comments)
 
@@ -310,20 +314,42 @@ class fits_writer(object):
             sqlQuery=sqlQuery,
             dbConn=self.dbConn
         )
+        if not len(rows):
+            return [], [], [], []
         primaryIds = []
-        primaryIds[:] = [str(r["primaryId"]) for r in rows]
-        primaryIds = (",").join(primaryIds)
+        primaryIdString = []
+        primaryIds[:] = [r["primaryId"] for r in rows]
+        primaryIdString = [str(r["primaryId"]) for r in rows]
+        primaryIdString = (",").join(primaryIdString)
 
         # ASK FOR KEYWORD VALUES
         myKeys = ("`,`").join(mysql_keywords)
         sqlQuery = f"""
-            select `{myKeys}`, concat(`archivePath`,"/",filename) as filepath from {instrument}_{tableSuffix} where primaryId in ({primaryIds})
+            select `{myKeys}`, concat(`archivePath`,"/",filename) as filepath from {instrument}_{tableSuffix} where primaryId in ({primaryIdString}) ORDER BY field(primaryId, {primaryIdString});
         """
         values = readquery(
             log=self.log,
             sqlQuery=sqlQuery,
             dbConn=self.dbConn
         )
+
+        # SANITY CHECK
+        sqlQuery = f"""
+            select primaryId from {instrument}_{tableSuffix} where primaryId in ({primaryIdString}) ORDER BY field(primaryId, {primaryIdString});
+        """
+        returnedPrimaryIds = readquery(
+            log=self.log,
+            sqlQuery=sqlQuery,
+            dbConn=self.dbConn
+        )
+        returnedPrimaryIds = [(r["primaryId"]) for r in rows]
+        for p, r in zip(primaryIds, returnedPrimaryIds):
+            if p == r:
+                pass
+            else:
+                message = "The primary IDs of the FITS keywords are not matching the primaryIds from the selected data release files"
+                print(message)
+                raise AssertionError("output text")
 
         self.log.debug(
             'completed the ``get_primary_header_keyword_values_from_database`` method')
@@ -373,7 +399,7 @@ class fits_writer(object):
         primaryIds[:] = [str(r["primaryId"]) for r in rows]
         primaryIds = (",").join(primaryIds)
 
-        # FIRST GRAB THE INFO FOR THE FITS FILES
+        # FIRST GRAB THE INFO FOR THE 1D FITS FILES
         sqlQuery = f"""
             select a.primaryId, concat("{self.settings["archive-root"]}/",a.archivePath,"/",a.filename) as orig_filepath,concat("{self.settings["archive-root"]}/",a.archivePath,"/",b.filename) as filepath, if(a.flux_scaling_factor,a.flux_scaling_factor,1) as scaleFactor from {table} a
 INNER JOIN {table} b on a.primaryId=b.binary_table_associated_spectrum_id where b.primaryId in ({primaryIds});
@@ -384,6 +410,8 @@ INNER JOIN {table} b on a.primaryId=b.binary_table_associated_spectrum_id where 
             dbConn=self.dbConn
         )
 
+        # THESE ARE THE DETAILS OF THE ORIGINAL 1D FITS SPECTRUM FILES (NOT THE
+        # BINARY TABLE FILES)
         origFitsPaths, tableFitsPaths, fluxScalingFactors, primaryIds = zip(*[(row["orig_filepath"], row["filepath"],
                                                                                row["scaleFactor"], row["primaryId"]) for row in rows])
 
@@ -403,6 +431,7 @@ INNER JOIN {table} b on a.primaryId=b.binary_table_associated_spectrum_id where 
             dbConn=self.dbConn
         )
 
+        # THESE ARE THE NAMES OF THE KEYWORDS WE NEED TO SELECT
         mysql_keywords, fits_keywords, fits_comments = zip(
             *[(row["mysql_keyword"], row["fits_keyword"], row["fits_comment"]) for row in rows])
 
@@ -417,6 +446,16 @@ INNER JOIN {table} b on a.primaryId=b.binary_table_associated_spectrum_id where 
             sqlQuery=sqlQuery,
             dbConn=self.dbConn
         )
+
+        # SANITY CHECKS
+        returnedFilepaths = [(r["filepath"]) for r in fits_values]
+        for o, r in zip(tableFitsPaths, returnedFilepaths):
+            if r in o:
+                pass
+            else:
+                message = "The file paths of the original fits files and those linked to the FITS extension keywords values do not match."
+                print(message)
+                raise AssertionError(message)
 
         if len(fits_values) != len(primaryIds):
             message = f"Seems there are rows missing from the {keywordTable} table"
@@ -524,7 +563,7 @@ def write_binary_table(
                               format='%sE' % (pixelCount,), unit='erg cm**(-2) s**(-1) angstrom**(-1)', array=fluxArray)
         fluxErrCol = fits.Column(name='ERR',
                                  format='%sE' % (pixelCount,), unit='erg cm**(-2) s**(-1) angstrom**(-1)', array=fluxErrArray)
-        backgroundCol = fits.Column(name='SKY_BACKGROUND',
+        backgroundCol = fits.Column(name='BGFLUX',
                                     format='%sE' % (pixelCount,), unit='erg cm**(-2) s**(-1) angstrom**(-1)', array=backgroundDataArray)
 
         # NOW COMBINE THE COLUMNS INTO BINTABLE HDU
@@ -536,11 +575,20 @@ def write_binary_table(
         # EXTENSION HEADER
         values, fits_comments = _prepare_fits_keywords(log,
                                                        mysql_keywords, fits_keywords, fits_comments, values)
+
+        # SORT BY fits_keywords
+        fits_keywords, mysql_keywords, fits_comments = zip(
+            *sorted(zip(fits_keywords, mysql_keywords, fits_comments)))
+
         for m, f, c in zip(mysql_keywords, fits_keywords, fits_comments):
             v = values[m]
             if m in ["SIMPLE", "EXTEND", "NAXIS1", "NELEM"]:
                 continue
-            binTableHdu.header[f] = (v, c)
+            # NOW JUST ADD THE NEW CARD
+            if v == None:
+                pass
+            else:
+                binTableHdu.header[f] = (v, c)
 
         # ADD A FEW MORE DYNAMIC KEYWORD VALUES AND COMMENTS
         for i in range(1, 5):
@@ -681,14 +729,12 @@ def _prepare_fits_keywords(
 def _generate_primary_fits_hdr(
         fits_values,
         log,
-        hdr,
         mysql_keywords,
         fits_keywords,
         fits_comments):
     """*generate the primary header for a single frame*
 
     **Key Arguments:**
-        - ``hdr`` -- empty header
         - `log` -- logger
         - `mysql_keywords` -- the keywords are stored in the mysql databasse
         - `fits_keywords` -- the keywords as to be written in the FITS headers
@@ -699,6 +745,10 @@ def _generate_primary_fits_hdr(
         - `hdr` -- the FITS header
     """
     log.debug('starting the ``_generate_primary_fits_hdr`` method')
+
+    # GENERATE A FRESH HDR OBJECT
+    hdu = fits.PrimaryHDU()
+    hdr = hdu.header
 
     # CONVERTER TO CONVERT MJD TO DATE
     converter = conversions(
@@ -712,6 +762,9 @@ def _generate_primary_fits_hdr(
 
     fits_values, fits_comments = _prepare_fits_keywords(log,
                                                         mysql_keywords, fits_keywords, fits_comments, fits_values)
+    # SORT BY fits_keywords
+    fits_keywords, mysql_keywords, fits_comments = zip(
+        *sorted(zip(fits_keywords, mysql_keywords, fits_comments)))
 
     for m, f, c in zip(mysql_keywords, fits_keywords, fits_comments):
         v = fits_values[m]
@@ -719,7 +772,10 @@ def _generate_primary_fits_hdr(
         if "prov" in m[:6].lower() and v is None:
             continue
         # NOW JUST ADD THE NEW CARD
-        hdr[f] = (v, c)
+        if v == None:
+            pass
+        else:
+            hdr[f] = (v, c)
 
     log.debug('completed the ``_generate_primary_fits_hdr`` method')
     return hdr

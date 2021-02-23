@@ -55,7 +55,7 @@ class test_catalogues(unittest.TestCase):
             log=log,
             settings=settings,
             pathToXLS=pathToOutputDir + "/catalogues/PESSTO_TRAN_CAT.xls",
-            pathToFits=pathToOutputDir + "/catalogues/PESSTO_TRAN_CAT.fits"
+            pathToFits=pathToOutputDir + "/catalogues/PESSTO_TRAN_CAT_from_excel.fits"
         )
         converter.convert()
 

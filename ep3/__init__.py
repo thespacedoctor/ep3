@@ -8,3 +8,5 @@ from .export_ssdr import export_ssdr
 from .clean import clean
 from .ssdr_snapshot import ssdr_snapshot
 from .catalogues import catalogues
+from . import reports
+from .transient_catalogue import transient_catalogue

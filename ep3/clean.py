@@ -16,6 +16,10 @@ os.environ['TERM'] = 'vt100'
 from fundamentals import tools
 from fundamentals.mysql import writequery, readquery
 from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
+from fundamentals.mysql import readquery
+from fundamentals.mysql import writequery
+import numpy as np
+from astropy.io import fits
 # OR YOU CAN REMOVE THE CLASS BELOW AND ADD A WORKER FUNCTION ... SNIPPET TRIGGER BELOW
 # xt-worker-def
 
@@ -107,7 +111,7 @@ class clean(object):
         procedures = [
             "ep3_clean_transientBucketSummaries()",
             "ep3_basic_keyword_value_corrections()",
-            "ep3_force_match_object_to_frame()",
+            "ep3_update_frame_object_ra_dec()",
             "ep3_set_file_associations()",
             "ep3_flag_frames_for_release()",
             "ep3_set_data_rel_versions()",
@@ -127,6 +131,7 @@ class clean(object):
 
         self.fix_image_astrometry_keywords()
         self.fix_sofi_mjd_keywords()
+        self.add_sofi_imaging_median_weight_values()
 
         self.log.debug('completed the ``clean`` method')
         return clean
@@ -323,6 +328,80 @@ class clean(object):
             )
 
         self.log.debug('completed the ``fix_sofi_mjd_keywords`` method')
+        return None
+
+    # use the tab-trigger below for new method
+    def add_sofi_imaging_median_weight_values(
+            self):
+        """*Open the weight frames, calculate the median pixel-weight and write back into the database*
+
+        **Key Arguments:**
+            # -
+
+        **Return:**
+            - None
+
+        **Usage:**
+
+        ```python
+        usage code
+        ```
+
+        ---
+
+        ```eval_rst
+        .. todo::
+
+            - add usage info
+            - create a sublime snippet for usage
+            - write a command-line tool for this method
+            - update package tutorial with command-line tool info if needed
+        ```
+        """
+        self.log.debug(
+            'starting the ``add_sofi_imaging_median_weight_values`` method')
+
+        sqlQuery = f"""
+            select i.primaryId, w.archivePath, w.filename from view_ssdr_sofi_imaging i
+            INNER JOIN
+            view_ssdr_sofi_imaging_weights w
+            on i.asson1 = w.exportFilename
+            where i.weight is null ;
+        """
+        rows = readquery(
+            log=self.log,
+            sqlQuery=sqlQuery,
+            dbConn=self.dbConn
+        )
+
+        if len(rows):
+
+            imageIds, weightPath = zip(*[(row["primaryId"], f'{self.settings["archive-root"]}/{row["archivePath"]}/{row["filename"]}') for row in rows])
+            for i, w in zip(imageIds, weightPath):
+
+                fitsPath = w
+                with fits.open(fitsPath, "readonly") as hdul:
+                    # ACCESS THE WEIGHT DATA AS NUMPY MULTIDIMENSIONAL ARRAY -
+                    # ndarray
+                    data = hdul[0].data
+                    # MASK 0 VALUES
+                    dataMasked = np.ma.masked_where(data == 0, data)
+                    median = np.ma.median(dataMasked)
+
+                    # WRITE RESULT BACK TO DATABASE
+                    sqlQuery = f"""update sofi_imaging set weight = {median} where primaryId = {i};"""
+                    writequery(
+                        log=self.log,
+                        sqlQuery=sqlQuery,
+                        dbConn=self.dbConn
+                    )
+                    basename = os.path.basename(fitsPath)
+                    print(
+                        f"Median sofi image pixel-weight calculated using {basename}")
+
+        print("All SOFI image median pixel-weight values written to database")
+        self.log.debug(
+            'completed the ``add_sofi_imaging_median_weight_values`` method')
         return None
 
     # use the tab-trigger below for new method

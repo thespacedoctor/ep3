@@ -105,6 +105,7 @@ class export_ssdr(object):
             self.fileType = fileType.lower()
         else:
             self.fileType = fileType
+
         self.exportPath = exportPath
 
         # xt-self-arg-tmpx

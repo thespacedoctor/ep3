@@ -185,11 +185,13 @@ class ssdr_snapshot(object):
           `wavelength` varchar(100) DEFAULT NULL,
           `data_rel` double DEFAULT NULL,
           `tablePrimaryId` int(11) DEFAULT NULL,
+          `transientBucketId` INT NULL DEFAULT NULL,
           PRIMARY KEY (`primaryId`),
           UNIQUE KEY `arcfile` (`arcfile`),
           KEY `idx_date_obs` (`date_obs`),
           KEY `idx_origname` (`origfile`),
-          KEY `idx_tablePriamryId` (`tablePrimaryId`)
+          KEY `idx_tablePriamryId` (`tablePrimaryId`),
+          KEY `idx_transientBucketId` (`transientBucketId` ASC)
         ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4;
         """
         writequery(

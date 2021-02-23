@@ -77,6 +77,16 @@ class test_clean(unittest.TestCase):
         )
         cleaner.fix_sofi_mjd_keywords()
 
+    def test_add_sofi_imaging_median_weight_values_function(self):
+
+        from ep3 import clean
+        cleaner = clean(
+            log=log,
+            dbConn=dbConn,
+            settings=settings
+        )
+        cleaner.add_sofi_imaging_median_weight_values()
+
     def test_clean_function_exception(self):
 
         from ep3 import clean

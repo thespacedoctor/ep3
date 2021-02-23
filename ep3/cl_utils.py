@@ -12,6 +12,8 @@ Usage:
     ep3 export <ssdr> <instrument> <fileType> <exportPath> [-s <pathToSettingsFile>]  
     ep3 esolist table <pathToCsv> <ssdr> [-s <pathToSettingsFile>]  
     ep3 esolist rename <pathToDownloads> [-s <pathToSettingsFile>]  
+    ep3 transcat <pathToOutputDir> [-s <pathToSettingsFile>]
+    ep3 reports [-s <pathToSettingsFile>]
 
 Options:
     clean                                  run the MySQL stored procedures to clean up FITS keyword values in database space
@@ -23,15 +25,18 @@ Options:
     rename                                 rename the frames downloaded from the ESO SAF
     rewrite                                refresh the fits headers based on what is in the database and regenerate all binary table files
     table                                  create a database table with the ESO CSV listing of files in a specific SSDR
+    transcat                               generate the transient catalogue
+    reports                                write out some useful reports for the release description
 
     <exportPath>                           path to export to frames to
     <fileType>                             image, weight, spec1d, spec2d, bintable or all
     <fitsObject>                           the object name in the FITS frames you want to manually force a match with frames whose coordinates are close to <transientId>
     <instrument>                           efosc, sofi or all
     <pathToCsv>                            path the the CSV file to
-    <pathToDownloads>                       path to a directory of downloaded files
+    <pathToDownloads>                      path to a directory of downloaded files
     <ssdr>                                 the SSDR number
     <transientId>                          the transient ID of the source you want to manually force a match with frames with object name <fitsObject>
+    <pathToOutputDir>                      path to the directory to output the catalogue to
 
     -h, --help                             show this help message
     -v, --version                          show version
@@ -206,8 +211,8 @@ def main(arguments=None):
             settings=settings,
             exportPath=a["exportPath"],
             ssdr=a["ssdr"],
-            instrument=False,
-            fileType=False
+            instrument=a["instrument"],
+            fileType=a["fileType"]
         )
         exporter.export()
 
@@ -240,6 +245,31 @@ def main(arguments=None):
         count = ssdr.ssdr_file_reset(
             pathToDownloadDir=a["pathToDownloads"])
         print(f"Successfully renamed {count} files.")
+
+    if a["transcat"]:
+
+        from ep3 import transient_catalogue
+        cat = transient_catalogue(
+            log=log,
+            dbConn=dbConn,
+            outputDirectory=a["pathToOutputDir"],
+            settings=settings
+        )
+        fitsPath = cat.create()
+        print(f"Here's the exported catalogue: {fitsPath}")
+
+    if a["reports"]:
+        from ep3.reports import object_spectra_breakdowns
+        object_spectra_breakdowns(
+            log=log,
+            settings=settings,
+            dbConn=dbConn
+        )
+        from ep3.reports import data_release_stats
+        data_release_stats(
+            log=log,
+            dbConn=dbConn
+        )
 
     # CALL FUNCTIONS/OBJECTS
 
