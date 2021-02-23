@@ -11,7 +11,7 @@ from os.path import expanduser
 home = expanduser("~")
 
 packageDirectory = utKit("").get_project_root()
-settingsFile = packageDirectory + "/test_settings2.yaml"
+settingsFile = packageDirectory + "/test_settings.yaml"
 # settingsFile = home + \
 #     "/git_repos/_misc_/settings/ep3/test_settings.yaml"
 

@@ -189,10 +189,11 @@ def object_spectra_breakdowns(
 
     snCount = 0
     slsnCount = 0
+    uncounted = []
     for c in csvEntries:
-        if c["Type"][:3] in = "SN ":
+        if c["Type"][:3] == "SN ":
             snCount += 1
-        elif c["Type"][:3] in = "SLS":
+        elif c["Type"][:3] == "SLS":
             snCount += 1
             slsnCount += 1
         elif c["Type"] not in uncounted:
