@@ -187,18 +187,70 @@ def object_spectra_breakdowns(
                 "Comments": ref
             })
 
+    # COUNT EFOSC SPECTRA
+    followupIds = (",").join(followupIds)
+    sqlQuery = f"""
+        select count(*)  as count from  view_ssdr_efosc_spectra_binary_tables where transientBucketId in ({followupIds})
+    """
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
+    )
+    efoscSpecCount = rows[0]["count"]
+
+    # COUNT SOFI SPECTRA
+    sqlQuery = f"""
+        select count(*)  as count from  view_ssdr_sofi_spectra_binary_tables where transientBucketId in ({followupIds})
+    """
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
+    )
+    sofiSpecCount = rows[0]["count"]
+
+    followupObjects = len(csvEntries)
+
     snCount = 0
     slsnCount = 0
+    tdeCount = 0
+    novaCount = 0
+    impostCount = 0
+    starCount = 0
+    frbCount = 0
+    agnCount = 0
+    knCount = 0
+    unknownCount = 0
     uncounted = []
     for c in csvEntries:
-        if c["Type"][:3] == "SN ":
+        if c["Type"][:2] == "SN":
             snCount += 1
         elif c["Type"][:3] == "SLS":
             snCount += 1
             slsnCount += 1
+        elif c["Type"][:3] == "TDE":
+            tdeCount += 1
+        elif c["Type"] == "Galactic Nova":
+            novaCount += 1
+        elif c["Type"] == "Impostor-SN":
+            impostCount += 1
+        elif c["Type"].lower() == "variable star":
+            starCount += 1
+        elif c["Type"] == "FRB":
+            frbCount += 1
+        elif c["Type"] == "AGN":
+            agnCount += 1
+        elif c["Type"] == "KN":
+            knCount += 1
+        elif c["Type"] == "unknown":
+            unknownCount += 1
         elif c["Type"] not in uncounted:
             uncounted.append(c["Type"])
-    print(uncounted)
+    print(f"""From this list, {snCount} supernovae ({slsnCount} of which are super-luminous supernovae), {impostCount} supernova imposters, {tdeCount} tidal disruption events, {unknownCount} unclassified objects, {agnCount} AGN, {novaCount} galactic novae, {starCount} variable stars, {frbCount} FRB and {knCount} kilonova were picked as interesting science targets and these were scheduled for follow-up time series EFOSC2 optical spectroscopy, with the brightest also having SOFI spectra. A summary of these {followupObjects} PESSTO Key Science targets and the spectral data sets taken is given in Table 3. The total number of spectra released for these {followupObjects} "PESSTO Key Science" targets are {efoscSpecCount} EFOSC2 spectra and {sofiSpecCount} SOFI spectra (a total of {sofiSpecCount+efoscSpecCount}). These EFOSC2 numbers include the first classification spectra taken.  """)
+
+    if len(uncounted):
+        print(f"You have forgotten to include the {uncounted} objects in source type breakdown")
 
     dataSet = list_of_dictionaries(
         log=log,
@@ -211,37 +263,9 @@ def object_spectra_breakdowns(
 
     print("CSV version of this table can be found at '/tmp/table3.csv'. Import it into an excel worksheet and add to the release description")
 
-    print(followupIds)
-    log.debug('completed the ``object_spectra_breakdowns`` function')
-    return None
+    print("\n\n")
 
-
-def data_release_stats(
-        dbConn,
-        log):
-    """print out some other data release stats
-
-    **Key Arguments:**
-        - ``dbConn`` -- mysql database connection
-        - ``log`` -- logger
-
-    **Return:**
-        - None
-
-    ```eval_rst
-    .. todo::
-
-        - add usage info
-        - create a sublime snippet for usage
-        - add a tutorial about ``subtract_calibrations`` to documentation
-    ```
-
-    ```python
-    usage code 
-    ```
-    """
-    log.debug('starting the ``data_release_stats`` function')
-
+    # GET DISTINCT OBJECT COUNT
     sqlQuery = f"""
         select count(*) as objects from (
 select distinct transientBucketId from view_ssdr_efosc_spectra_binary_tables
@@ -253,8 +277,10 @@ select distinct transientBucketId from view_ssdr_sofi_spectra_binary_tables) as 
         sqlQuery=sqlQuery,
         dbConn=dbConn
     )
-    count = rows[0]["objects"]
-    print(f"PESSTO has taken spectra of {count} distinct objects")
+    allObjects = rows[0]["objects"]
+    print(f"PESSTO has taken spectra of {allObjects} distinct objects")
 
-    log.debug('completed the ``data_release_stats`` function')
+    print(f"In total the SSDR4 contains 21.29GB of data and the numbers of images and spectra are given in Table 4.  In total there are 2851 EFOSC2 spectra released. These include the 1753 EFOSC2 spectra of  Table 3. The remaining 1098 EFOSC spectra relate to 999 objects for which we took spectra but did not pur - sue a detailed follow - up campaign.")
+
+    log.debug('completed the ``object_spectra_breakdowns`` function')
     return None
