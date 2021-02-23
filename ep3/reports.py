@@ -197,11 +197,29 @@ def object_spectra_breakdowns(
         sqlQuery=sqlQuery,
         dbConn=dbConn
     )
+    efoscSpecFollowCount = rows[0]["count"]
+    sqlQuery = f"""
+        select count(*)  as count from  view_ssdr_efosc_spectra_binary_tables
+    """
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
+    )
     efoscSpecCount = rows[0]["count"]
 
     # COUNT SOFI SPECTRA
     sqlQuery = f"""
         select count(*)  as count from  view_ssdr_sofi_spectra_binary_tables where transientBucketId in ({followupIds})
+    """
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
+    )
+    sofiSpecFollowCount = rows[0]["count"]
+    sqlQuery = f"""
+        select count(*)  as count from  view_ssdr_sofi_spectra_binary_tables
     """
     rows = readquery(
         log=log,
@@ -247,7 +265,7 @@ def object_spectra_breakdowns(
             unknownCount += 1
         elif c["Type"] not in uncounted:
             uncounted.append(c["Type"])
-    print(f"""From this list, {snCount} supernovae ({slsnCount} of which are super-luminous supernovae), {impostCount} supernova imposters, {tdeCount} tidal disruption events, {unknownCount} unclassified objects, {agnCount} AGN, {novaCount} galactic novae, {starCount} variable stars, {frbCount} FRB and {knCount} kilonova were picked as interesting science targets and these were scheduled for follow-up time series EFOSC2 optical spectroscopy, with the brightest also having SOFI spectra. A summary of these {followupObjects} PESSTO Key Science targets and the spectral data sets taken is given in Table 3. The total number of spectra released for these {followupObjects} "PESSTO Key Science" targets are {efoscSpecCount} EFOSC2 spectra and {sofiSpecCount} SOFI spectra (a total of {sofiSpecCount+efoscSpecCount}). These EFOSC2 numbers include the first classification spectra taken.  """)
+    print(f"""From this list, {snCount} supernovae ({slsnCount} of which are super-luminous supernovae), {impostCount} supernova imposters, {tdeCount} tidal disruption events, {unknownCount} unclassified objects, {agnCount} AGN, {novaCount} galactic novae, {starCount} variable stars, {frbCount} FRB and {knCount} kilonova were picked as interesting science targets and these were scheduled for follow-up time series EFOSC2 optical spectroscopy, with the brightest also having SOFI spectra. A summary of these {followupObjects} PESSTO Key Science targets and the spectral data sets taken is given in Table 3. The total number of spectra released for these {followupObjects} "PESSTO Key Science" targets are {efoscSpecFollowCount} EFOSC2 spectra and {sofiSpecFollowCount} SOFI spectra (a total of {sofiSpecFollowCount+efoscSpecFollowCount}). These EFOSC2 numbers include the first classification spectra taken.  """)
 
     if len(uncounted):
         print(f"You have forgotten to include the {uncounted} objects in source type breakdown")
@@ -280,7 +298,7 @@ select distinct transientBucketId from view_ssdr_sofi_spectra_binary_tables) as 
     allObjects = rows[0]["objects"]
     print(f"PESSTO has taken spectra of {allObjects} distinct objects")
 
-    print(f"In total the SSDR4 contains 21.29GB of data and the numbers of images and spectra are given in Table 4.  In total there are 2851 EFOSC2 spectra released. These include the 1753 EFOSC2 spectra of  Table 3. The remaining 1098 EFOSC spectra relate to 999 objects for which we took spectra but did not pur - sue a detailed follow - up campaign.")
+    print(f"In total the SSDRXX contains XXXGB of data and the numbers of images and spectra are given in Table 4. In total there are {efoscSpecCount} EFOSC2 spectra released. These include the {efoscSpecFollowCount} EFOSC2 spectra of  Table 3. The remaining {efoscSpecCount-efoscSpecFollowCount} EFOSC spectra relate to {allObjects-followupObjects} objects for which we took spectra but did not pursue a detailed followup campaign.")
 
     log.debug('completed the ``object_spectra_breakdowns`` function')
     return None

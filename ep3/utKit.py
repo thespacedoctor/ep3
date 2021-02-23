@@ -95,13 +95,6 @@ class utKit(utKit):
         )
         arguments, settings, log, dbConn = su.setup()
 
-        print(packageDirectory +
-              "/test_settings.yaml")
-        print(packageDirectory + "/tests/input")
-
-        import sys
-        sys.exit(0)
-
         directory_script_runner(
             log=log,
             pathToScriptDirectory=packageDirectory + "/tests/input",
