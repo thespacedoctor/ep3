@@ -7,3 +7,5 @@ include *.rst
 recursive-include ep3 *
 global-exclude *.pyo
 global-exclude *.pyc
+global-exclude *tests
+prune tests
