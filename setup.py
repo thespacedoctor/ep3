@@ -19,7 +19,8 @@ install_requires = [
     'ccdproc',
     'pandas',
     'hmpty',
-    'xlrd'
+    'xlrd',
+    'numpy'
 ]
 
 # READ THE DOCS SERVERS
