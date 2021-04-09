@@ -178,7 +178,7 @@ class transient_catalogue(object):
             'EXTNAME', 'PHASE3CATALOG', 'fits extension name'), after=True)
         for col in coldesc:
             after = f'TFORM{col["columnNumber"]}'
-            for k in ["TPRIC", "TINDX", "TUCD", "TCOMM"]:
+            for k in ["TPRIC", "TINDX", "TUCD", "TCOMM", "TXLNK"]:
                 if col[k]:
                     if col[k] == "T":
                         col[k] = True
@@ -220,16 +220,22 @@ class transient_catalogue(object):
 
         # GET ALL MJDs
         sqlQuery = f"""
-            select distinct TRANSIENT_CLASSIFICATION_MJD from PESSTO_TRAN_CAT where TRANSIENT_CLASSIFICATION_MJD is not null order by TRANSIENT_CLASSIFICATION_MJD desc;
+            select min(mjd_obs) as minmjd, max(mjd_obs) as maxmjd from (
+            select e.mjd_obs from view_ssdr_efosc_spectra_binary_tables e
+            inner join PESSTO_TRAN_CAT c
+            on c.TRANSIENT_CLASSIFICATION_SPECTRUM = e.esoFilename
+            UNION
+            select e.mjd_obs from view_ssdr_efosc_spectra_binary_tables e
+            inner join PESSTO_TRAN_CAT c
+            on c.TRANSIENT_CLASSIFICATION_SPECTRUM = e.exportFilename) a;
         """
         mjds = readquery(
             log=self.log,
             sqlQuery=sqlQuery,
             dbConn=self.dbConn
         )
-        mjds[:] = [p["TRANSIENT_CLASSIFICATION_MJD"] for p in mjds]
-        mjdMax = mjds[0]
-        mjdMin = mjds[-1]
+        mjdMax = mjds[0]["maxmjd"]
+        mjdMin = mjds[0]["minmjd"]
 
         now = datetime.now()
         now = now.strftime("%Y-%m-%dT%H:%M:%S")
@@ -242,7 +248,7 @@ class transient_catalogue(object):
         primHdu.header["EQUINOX"] = 2000
         primHdu.header["MJD-OBS"] = (mjdMin, "Start of observations (days)")
         primHdu.header["MJD-END"] = (mjdMax, "End of observations (days)")
-        primHdu.header["RADECSYS"] = ("FK5", "Coordinate reference frame")
+        primHdu.header["RADESYS"] = ("FK5", "Coordinate reference frame")
         primHdu.header["PROG_ID"] = ("MULTI", "ESO programme identification")
         for i, progId in enumerate(progIds):
             ii = i + 1
