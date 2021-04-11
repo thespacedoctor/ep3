@@ -338,6 +338,7 @@ class crossmatcher(object):
             sqlQuery = f"""
                 select primaryId, ra, decl, object,  if(filetype_key_reduction_stage=3,1,0) as reduced from {tableName} where transientBucketId is null or transientBucketId = 0 and filetype_key_calibration in ({keys}) and filetype_key_reduction_stage = 3 and ra is not null and decl is not null  {locked} and do_not_release = 0;
             """
+            print(sqlQuery)
         else:
             sqlQuery = f"""
                 select primaryId, ra, decl, object,  if(filetype_key_reduction_stage=3,1,0) as reduced from {tableName} where transientBucketId is null or transientBucketId = 0 and filetype_key_reduction_stage = 3  and ra is not null and decl is not null {locked} and do_not_release = 0;
