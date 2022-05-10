@@ -10,3 +10,4 @@ from .ssdr_snapshot import ssdr_snapshot
 from .catalogues import catalogues
 from . import reports
 from .transient_catalogue import transient_catalogue
+from .mphot_catalogue import mphot_catalogue

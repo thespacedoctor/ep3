@@ -13,6 +13,7 @@ Usage:
     ep3 esolist table <pathToCsv> <ssdr> [-s <pathToSettingsFile>]  
     ep3 esolist rename <pathToDownloads> [-s <pathToSettingsFile>]  
     ep3 transcat <pathToOutputDir> [-s <pathToSettingsFile>]
+    ep3 photcat <pathToOutputDir> [-s <pathToSettingsFile>]
     ep3 reports [-s <pathToSettingsFile>]
 
 Options:
@@ -26,6 +27,7 @@ Options:
     rewrite                                refresh the fits headers based on what is in the database and regenerate all binary table files
     table                                  create a database table with the ESO CSV listing of files in a specific SSDR
     transcat                               generate the transient catalogue
+    photcat                                generate the photometry catalogue
     reports                                write out some useful reports for the release description
 
     <exportPath>                           path to export to frames to
@@ -250,6 +252,18 @@ def main(arguments=None):
 
         from ep3 import transient_catalogue
         cat = transient_catalogue(
+            log=log,
+            dbConn=dbConn,
+            outputDirectory=a["pathToOutputDir"],
+            settings=settings
+        )
+        fitsPath = cat.create()
+        print(f"Here's the exported catalogue: {fitsPath}")
+
+    if a["photcat"]:
+
+        from ep3 import mphot_catalogue
+        cat = mphot_catalogue(
             log=log,
             dbConn=dbConn,
             outputDirectory=a["pathToOutputDir"],
